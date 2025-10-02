@@ -6,7 +6,11 @@
 
 Well music now it a reaction to Spotify's broken app (It has been broken alot for me, with login and playback issues). While SoundCloud provides an app I really don't like it (design structure features). Therefore I decided to programm MusicNow.
 
-MusicNow features: - Fullstack Rust from web-request to ui to audio playback and decoding - Fast and responsive due to dioxus - Crossplatform (Linux, Windows, Mac, IOs, Android) - Playback without login
+MusicNow features:
+ - Fullstack Rust from web-request to ui to audio playback and decoding
+ - Fast and responsive due to dioxus
+ - Crossplatform (Linux, Windows, Mac, IOs, Android)
+ - Playback without login
 
 ## How to build
 
