@@ -142,7 +142,6 @@ fn play_music(cursor: AudioStreamer) -> Result<(), ServerFnError> {
 
     let source = Decoder::try_from(cursor)?;
     sink.append(source);
-    sink.pause();
 
     println!("Wait");
 

@@ -19,3 +19,13 @@ script = []
 # Javascript code file
 # serve: [dev-server] only
 script = []
+
+[android.app]
+min_sdk_version = 30
+target_sdk_version = 34
+compile_sdk_version = 34
+
+[bundle]
+publisher = "LDprg"
+identifier = "com.ldprg"
+icon = ["assets/icon.png"]

@@ -7,7 +7,7 @@ use crate::audio::*;
 pub async fn run() -> Result<(), ServerFnError>{
     let client_id = get_client_id().await?;
 
-   // run_audio(client_id).await?;
+   run_audio(client_id).await?;
 
    Ok(())
 }

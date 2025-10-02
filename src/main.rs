@@ -1,14 +1,15 @@
 use dioxus::prelude::*;
 use dioxus_free_icons::{
-    icons::hi_solid_icons::{HiArrowCircleLeft, HiArrowCircleRight, HiBeaker, HiPlay},
     Icon,
+    icons::hi_solid_icons::{HiArrowCircleLeft, HiArrowCircleRight, HiBeaker, HiPlay},
 };
+use tokio::runtime;
 
-mod components;
-#[cfg(feature = "server")]
-mod server;
-#[cfg(feature = "server")]
 mod audio;
+mod components;
+mod server;
+
+use crate::server::*;
 
 #[derive(Debug, Clone, Routable, PartialEq)]
 #[rustfmt::skip]
@@ -20,12 +21,18 @@ enum Route {
 const FAVICON: Asset = asset!("/assets/favicon.ico");
 const TAILWIND_CSS: Asset = asset!("/assets/tailwind.css");
 
+fn audio_task(rt : runtime::Runtime) {
+    rt.block_on(run()).unwrap();
+}
+
 fn main() {
-    #[cfg(feature = "server")]
-    tokio::runtime::Runtime::new()
-        .unwrap()
-        .block_on(crate::server::run());
-    #[cfg(not(feature = "server"))]
+    let rt = runtime::Builder::new_current_thread()
+        .enable_all()
+        .build()
+        .unwrap();
+
+    std::thread::spawn(|| audio_task(rt));
+
     dioxus::launch(App);
 }
 
