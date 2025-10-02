@@ -1,7 +1,7 @@
 use dioxus::prelude::*;
 use dioxus_free_icons::{
     Icon,
-    icons::hi_solid_icons::{HiArrowCircleLeft, HiArrowCircleRight, HiPause, HiPlay},
+    icons::hi_solid_icons::{HiArrowCircleLeft, HiArrowCircleRight, HiBeaker, HiPause, HiPlay},
 };
 
 mod components;
@@ -35,29 +35,38 @@ fn Home() -> Element {
         div { "Site Something" }
         div { class: "absolute inset-x-0 bottom-0 m-[8]",
             progress { class: "progress w-full", value: 30, max: 100 }
+
             div { class: "flex justify-items-center items-center w-full",
-                div { class: "flex-1 mx-8 justify-self-start align-center", "Song" }
-                button { class: "btn btn-square", width: 50, height: 50,
-                    Icon { width: 50, height: 50, icon: HiArrowCircleLeft }
+                div { width: "50px", height: "50px",
+                    Icon { width: 50, height: 50, icon: HiBeaker }
                 }
-                button { class: "btn btn-square", width: 50, height: 50,
-                    Icon { width: 50, height: 50, icon: HiPlay }
-                }
-                button { class: "btn btn-square", width: 50, height: 50,
-                    Icon { width: 50, height: 50, icon: HiPause }
-                }
-                button { class: "btn btn-square", width: 50, height: 50,
-                    Icon { width: 50, height: 50, icon: HiArrowCircleRight }
-                }
-                div { class: "flex-1 ml-[50]",
-                    "Volume: "
-                    input {
-                        class: "px-[8] w-9/10 range range-xs",
-                        r#type: "range",
-                        min: 0,
-                        max: 100,
-                        value: 40,
+                div { "Song" }
+                div { class: "grow flex justify-center items-center",
+                    button {
+                        class: "btn btn-square",
+                        width: "30px",
+                        height: "30px",
+                        Icon { width: 30, height: 30, icon: HiArrowCircleLeft }
                     }
+                    button {
+                        class: "btn btn-square",
+                        width: "30px",
+                        height: "30px",
+                        Icon { width: 30, height: 30, icon: HiPlay }
+                    }
+                    button {
+                        class: "btn btn-square",
+                        width: "30px",
+                        height: "30px",
+                        Icon { width: 30, height: 30, icon: HiArrowCircleRight }
+                    }
+                }
+                input {
+                    class: "range range-xs w-1/6",
+                    r#type: "range",
+                    min: 0,
+                    max: 100,
+                    value: 50,
                 }
             }
         }

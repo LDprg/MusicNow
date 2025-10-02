@@ -4620,9 +4620,6 @@
       }
     }
   }
-  .mx-8 {
-    margin-inline: calc(var(--spacing) * 8);
-  }
   .file-input-ghost {
     background-color: transparent;
     transition: background-color 0.2s;
@@ -4998,9 +4995,6 @@
     text-transform: uppercase;
     opacity: 60%;
     font-weight: 600;
-  }
-  .ml-\[50\] {
-    margin-left: 50;
   }
   .carousel-item {
     box-sizing: content-box;
@@ -5773,8 +5767,17 @@
   .loading-xs {
     width: calc(var(--size-selector, 0.25rem) * 4);
   }
-  .w-9\/10 {
-    width: calc(9/10 * 100%);
+  .w-1 {
+    width: calc(var(--spacing) * 1);
+  }
+  .w-1\/6 {
+    width: calc(1/6 * 100%);
+  }
+  .w-1\/7 {
+    width: calc(1/7 * 100%);
+  }
+  .w-1\/8 {
+    width: calc(1/8 * 100%);
   }
   .w-full {
     width: 100%;
@@ -5786,6 +5789,9 @@
     flex-shrink: 1;
   }
   .flex-grow {
+    flex-grow: 1;
+  }
+  .grow {
     flex-grow: 1;
   }
   .border-collapse {
@@ -5940,11 +5946,11 @@
   .items-center {
     align-items: center;
   }
+  .justify-center {
+    justify-content: center;
+  }
   .justify-items-center {
     justify-items: center;
-  }
-  .justify-self-start {
-    justify-self: flex-start;
   }
   .timeline-box {
     border: var(--border) solid;
@@ -6693,9 +6699,6 @@
     --size: calc(var(--size-selector, 0.25rem) * 4);
     font-size: 0.625rem;
     padding-inline: calc(0.25rem * 2 - var(--border));
-  }
-  .px-\[8\] {
-    padding-inline: 8;
   }
   .file-input-xl {
     padding-inline-end: calc(0.25rem * 6);
