@@ -1,8 +1,15 @@
-use std::{io::{self, Read, Seek, SeekFrom}, sync::{Arc, Mutex, mpsc::{self, channel}}};
-use dioxus::prelude::*;
-use rodio::{Decoder, Sink, OutputStreamBuilder};
+use crate::prelude::*;
+
 use rodio::decoder::DecoderError;
+use rodio::{Decoder, OutputStreamBuilder, Sink};
 use serde_json::Value;
+use std::{
+    io::{self, Read, Seek, SeekFrom},
+    sync::{
+        Arc, Mutex,
+        mpsc::{self, channel},
+    },
+};
 use tokio::task::spawn_blocking;
 
 #[derive(Clone)]
@@ -95,7 +102,7 @@ impl TryFrom<AudioStreamer> for Decoder<AudioStreamer> {
 }
 
 #[allow(unused)]
-pub async fn run_audio(client_id : String) -> Result<(), ServerFnError>{
+pub async fn run_audio(client_id: String) -> Result<()> {
     let resp = reqwest::get(format!("https://api-v2.soundcloud.com/media/soundcloud:tracks:1301000134/4d4ac9de-2dcd-440d-ab81-2e2a7d76282b/stream/hls?client_id={}", client_id)).await?;
     let url: Value = resp.json().await?;
     let url = url.get("url").unwrap().as_str().unwrap().to_string();
@@ -106,12 +113,12 @@ pub async fn run_audio(client_id : String) -> Result<(), ServerFnError>{
     let stream = resp.bytes().await?;
 
     let playlist =
-        m3u8_rs::parse_media_playlist_res(&stream).map_err(|e| ServerFnError::new(e.to_string()))?;
+        m3u8_rs::parse_media_playlist_res(&stream).map_err(|e| anyhow!(e.to_string()))?;
 
     let stream = AudioStreamer::default();
     let music_player = spawn_blocking({
         let stream = stream.clone();
-        move || -> Result<(), ServerFnError> { play_music(stream) }
+        move || -> Result<()> { play_music(stream) }
     });
 
     for segment in playlist.segments {
@@ -136,7 +143,7 @@ pub async fn run_audio(client_id : String) -> Result<(), ServerFnError>{
     Ok(())
 }
 
-fn play_music(cursor: AudioStreamer) -> Result<(), ServerFnError> {
+fn play_music(cursor: AudioStreamer) -> Result<()> {
     let stream_handle = OutputStreamBuilder::open_default_stream()?;
     let sink = Sink::connect_new(stream_handle.mixer());
 

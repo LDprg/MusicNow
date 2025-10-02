@@ -1,90 +1,22 @@
-use dioxus::prelude::*;
-use dioxus_free_icons::{
-    Icon,
-    icons::hi_solid_icons::{HiArrowCircleLeft, HiArrowCircleRight, HiBeaker, HiPlay},
-};
-use tokio::runtime;
+use tokio::runtime::*;
 
+mod app;
 mod audio;
 mod components;
+mod prelude;
 mod server;
 
+use crate::app::*;
 use crate::server::*;
 
-#[derive(Debug, Clone, Routable, PartialEq)]
-#[rustfmt::skip]
-enum Route {
-    #[route("/")]
-    Home {},
-}
-
-const FAVICON: Asset = asset!("/assets/favicon.ico");
-const TAILWIND_CSS: Asset = asset!("/assets/tailwind.css");
-
-fn audio_task(rt : runtime::Runtime) {
+fn audio_service(rt: Runtime) {
     rt.block_on(run()).unwrap();
 }
 
 fn main() {
-    let rt = runtime::Builder::new_current_thread()
-        .enable_all()
-        .build()
-        .unwrap();
+    let rt = Builder::new_current_thread().enable_all().build().unwrap();
 
-    std::thread::spawn(|| audio_task(rt));
+    std::thread::spawn(|| audio_service(rt));
 
     dioxus::launch(App);
-}
-
-#[component]
-fn App() -> Element {
-    rsx! {
-        document::Link { rel: "icon", href: FAVICON }
-        document::Link { rel: "stylesheet", href: TAILWIND_CSS }
-        Router::<Route> {}
-    }
-}
-
-#[component]
-fn Home() -> Element {
-    rsx!(
-        div { "Site Something" }
-        div { class: "absolute inset-x-0 bottom-0 m-[8]",
-            progress { class: "progress w-full", value: 30, max: 100 }
-
-            div { class: "flex justify-items-center items-center w-full",
-                div { width: "50px", height: "50px",
-                    Icon { width: 50, height: 50, icon: HiBeaker }
-                }
-                div { "Song" }
-                div { class: "grow flex justify-center items-center",
-                    button {
-                        class: "btn btn-square",
-                        width: "30px",
-                        height: "30px",
-                        Icon { width: 30, height: 30, icon: HiArrowCircleLeft }
-                    }
-                    button {
-                        class: "btn btn-square",
-                        width: "30px",
-                        height: "30px",
-                        Icon { width: 30, height: 30, icon: HiPlay }
-                    }
-                    button {
-                        class: "btn btn-square",
-                        width: "30px",
-                        height: "30px",
-                        Icon { width: 30, height: 30, icon: HiArrowCircleRight }
-                    }
-                }
-                input {
-                    class: "range range-xs w-1/6",
-                    r#type: "range",
-                    min: 0,
-                    max: 100,
-                    value: 50,
-                }
-            }
-        }
-    )
 }

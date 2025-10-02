@@ -1,19 +1,20 @@
-use dioxus::prelude::*;
-use scraper::{Html, Selector};
+use crate::prelude::*;
+
 use regex::Regex;
+use scraper::{Html, Selector};
 
-use crate::audio::*;
+// use crate::audio::*;
 
-pub async fn run() -> Result<(), ServerFnError>{
-    let client_id = get_client_id().await?;
+pub async fn run() -> Result<()> {
+    //  let client_id = get_client_id().await?;
+    //
+    // run_audio(client_id).await?;
 
-   run_audio(client_id).await?;
-
-   Ok(())
+    Ok(())
 }
 
-
-async fn get_client_id() -> Result<String, ServerFnError> {
+#[allow(unused)]
+async fn get_client_id() -> Result<String> {
     let resp = reqwest::get("https://soundcloud.com").await.unwrap();
     let body = resp.text().await.unwrap();
 

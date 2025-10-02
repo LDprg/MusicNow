@@ -7,16 +7,17 @@
 Well music now it a reaction to Spotify's broken app (It has been broken alot for me, with login and playback issues). While SoundCloud provides an app I really don't like it (design structure features). Therefore I decided to programm MusicNow.
 
 MusicNow features:
- - Fullstack Rust from web-request to ui to audio playback and decoding
- - Fast and responsive due to dioxus
- - Crossplatform (Linux, Windows, Mac, IOs, Android)
- - Playback without login
+
+- Fullstack Rust from web-request to ui to audio playback and decoding
+- Fast and responsive due to dioxus
+- Crossplatform (Linux, Windows, Mac, IOs, Android)
+- Playback without login
 
 ## How to build
 
 Since it is a dioxus project it can be simple build and developed using the `dx` tool (see their docs for more info).
 
-For android builds you will need to use the cli from the main branch since it updated the minimum android sdk to 28 which is required for aaudio support.
+For android builds you will need to use the cli from the main branch since it updated the minimum android sdk to 28 which is required for aaudio support. This will change when dioxus 0.7 is fully released.
 
 ## Where does the music come from?
 
