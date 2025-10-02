@@ -1,10 +1,14 @@
 use dioxus::prelude::*;
 use dioxus_free_icons::{
+    icons::hi_solid_icons::{HiArrowCircleLeft, HiArrowCircleRight, HiBeaker, HiPlay},
     Icon,
-    icons::hi_solid_icons::{HiArrowCircleLeft, HiArrowCircleRight, HiBeaker, HiPause, HiPlay},
 };
 
 mod components;
+#[cfg(feature = "server")]
+mod server;
+#[cfg(feature = "server")]
+mod audio;
 
 #[derive(Debug, Clone, Routable, PartialEq)]
 #[rustfmt::skip]
@@ -17,6 +21,11 @@ const FAVICON: Asset = asset!("/assets/favicon.ico");
 const TAILWIND_CSS: Asset = asset!("/assets/tailwind.css");
 
 fn main() {
+    #[cfg(feature = "server")]
+    tokio::runtime::Runtime::new()
+        .unwrap()
+        .block_on(crate::server::run());
+    #[cfg(not(feature = "server"))]
     dioxus::launch(App);
 }
 
