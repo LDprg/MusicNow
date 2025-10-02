@@ -1,7 +1,0 @@
-[package]
-name = "musicnow_shared"
-version = "0.1.0"
-authors = ["LDprg"]
-edition = "2024"
-
-[dependencies]
