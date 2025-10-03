@@ -1,3 +1,4 @@
+use dioxus::logger::tracing::Level;
 use tokio::runtime::*;
 
 mod app;
@@ -15,6 +16,9 @@ fn audio_service(rt: Runtime) {
 
 fn main() {
     let rt = Builder::new_current_thread().enable_all().build().unwrap();
+
+    // Init logger
+    dioxus::logger::init(Level::INFO).expect("failed to init logger");
 
     std::thread::spawn(|| audio_service(rt));
 

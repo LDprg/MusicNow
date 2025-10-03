@@ -1,11 +1,13 @@
 use crate::prelude::*;
 
+use dioxus::logger::tracing::{info, warn};
 use regex::Regex;
 use scraper::{Html, Selector};
 
 // use crate::audio::*;
 
 pub async fn run() -> Result<()> {
+    warn!("Run Audio Service");
     // let client_id = get_client_id().await?;
     //
     // run_audio(client_id).await?;
@@ -32,7 +34,7 @@ async fn get_client_id() -> Result<String> {
         }
     }
 
-    println!("{}", script_src);
+    info!("{}", script_src);
 
     let resp = reqwest::get(script_src).await.unwrap();
     let body = resp.text().await.unwrap();
@@ -46,7 +48,7 @@ async fn get_client_id() -> Result<String> {
     let pos = client_id.find(end).unwrap();
     let client_id = client_id.get(..pos).unwrap();
 
-    println!("{}", client_id);
+    info!("{}", client_id);
 
     Ok(client_id.to_string())
 }

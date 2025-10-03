@@ -1,5 +1,6 @@
 use crate::prelude::*;
 
+use dioxus::logger::tracing::info;
 use rodio::decoder::DecoderError;
 use rodio::{Decoder, OutputStreamBuilder, Sink};
 use serde_json::Value;
@@ -82,7 +83,7 @@ impl Seek for AudioStreamer {
             SeekFrom::Current(off) => inner.pos as i64 + off,
         };
 
-        println!("Seek: {:?}, {} to {}", pos, inner.pos, new_pos);
+        info!("Seek: {:?}, {} to {}", pos, inner.pos, new_pos);
 
         if new_pos < 0 {
             return Err(io::Error::new(io::ErrorKind::InvalidInput, "Invalid seek"));
@@ -107,7 +108,7 @@ pub async fn run_audio(client_id: String) -> Result<()> {
     let url: Value = resp.json().await?;
     let url = url.get("url").unwrap().as_str().unwrap().to_string();
 
-    println!("Url: {}", url);
+    info!("Url: {}", url);
 
     let resp = reqwest::get(url).await?;
     let stream = resp.bytes().await?;
@@ -123,14 +124,14 @@ pub async fn run_audio(client_id: String) -> Result<()> {
 
     for segment in playlist.segments {
         if let Some(map) = &segment.map {
-            println!("Download Segment Map!");
+            info!("Download Segment Map!");
             let resp = reqwest::get(&map.uri).await?;
             let data = resp.bytes().await?;
 
             stream.append(&data);
         }
 
-        println!("Download Segment!");
+        info!("Download Segment!");
         let resp = reqwest::get(&segment.uri).await?;
         let data = resp.bytes().await?;
         stream.append(&data);
@@ -150,11 +151,11 @@ fn play_music(cursor: AudioStreamer) -> Result<()> {
     let source = Decoder::try_from(cursor)?;
     sink.append(source);
 
-    println!("Wait");
+    info!("Wait");
 
     sink.sleep_until_end();
 
-    println!("End");
+    info!("End");
 
     Ok(())
 }
