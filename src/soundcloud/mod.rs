@@ -2,10 +2,7 @@ use crate::prelude::*;
 
 use regex::Regex;
 use scraper::{Html, Selector};
-use std::{
-    sync::{Arc, RwLock},
-    time::Duration,
-};
+use std::sync::{Arc, RwLock};
 
 pub struct SoundCloudApi {
     client: reqwest::Client,
@@ -18,8 +15,7 @@ struct SoundCloudApiInner {
 
 impl SoundCloudApi {
     pub async fn login_anonymous(&self) -> Result<()> {
-        let mut inner = self.inner.write().unwrap();
-        inner.client_id = Some(self.fetch_client_id().await?);
+        self.inner.write().unwrap().client_id = Some(self.fetch_client_id().await?);
         Ok(())
     }
 
