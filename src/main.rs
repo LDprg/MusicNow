@@ -1,3 +1,7 @@
+use crate::prelude::*;
+
+use std::thread;
+
 use dioxus::logger::tracing::Level;
 use tokio::runtime::*;
 
@@ -5,22 +9,33 @@ mod app;
 mod audio;
 mod components;
 mod prelude;
-mod server;
+mod soundcloud;
 
 use crate::app::*;
-use crate::server::*;
+use crate::audio::run_audio;
+use crate::soundcloud::*;
 
-fn audio_service(rt: Runtime) {
-    rt.block_on(run()).unwrap();
+async fn audio_service() {
+    let api = SoundCloudApi::default();
+    api.login_anonymous().await.unwrap();
+
+    let client_id = api.get_client_id().unwrap();
+    run_audio(client_id).await.unwrap();
+}
+
+fn spawn_services() {
+    let rt = Builder::new_current_thread().enable_all().build().unwrap();
+
+    thread::spawn(move || {
+        rt.block_on(audio_service());
+    });
 }
 
 fn main() {
-    let rt = Builder::new_current_thread().enable_all().build().unwrap();
-
     // Init logger
     dioxus::logger::init(Level::INFO).expect("failed to init logger");
 
-    std::thread::spawn(|| audio_service(rt));
+    thread::spawn(spawn_services);
 
     dioxus::launch(App);
 }

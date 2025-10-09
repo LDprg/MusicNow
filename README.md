@@ -26,3 +26,7 @@ MusicNow uses SoundCloud APIs for everything currently, however there might be a
 ## Could I use the web platform?
 
 It is possible to use MusicNow with the web platform, although it is concidered mainly for development. Keep in mind that the frontend and backend WON'T communicate with any encryption or authentification, since they are supposed to run on the same device. So NEVER use the web platform over an unsecure or public network, you have been warned!
+
+## Other languages?
+
+Might be implemented using https://github.com/dioxus-community/dioxus-i18n, however might take until there is time for this.

@@ -15,10 +15,16 @@ dioxus-free-icons = { git = "https://github.com/PupsieCo/dioxus-free-icons", fea
 m3u8-rs = { version = "6.0.0" }
 regex = { version = "1.11.3" }
 reqwest = { version = "0.12.23", default-features = false, features = [
+    "brotli",
     "charset",
+    "deflate",
+    "gzip",
     "http2",
+    "http3",
     "json",
     "rustls-tls",
+    "system-proxy",
+    "zstd",
 ] }
 rodio = { version = "0.21.1", features = ["symphonia-all"] }
 scraper = { version = "0.24.0" }
