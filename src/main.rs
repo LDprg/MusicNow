@@ -10,7 +10,7 @@ mod prelude;
 mod soundcloud;
 
 use crate::app::*;
-use crate::audio::run_audio;
+use crate::audio::*;
 use crate::soundcloud::*;
 
 async fn audio_service() {

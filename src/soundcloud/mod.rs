@@ -20,9 +20,7 @@ impl SoundCloudApi {
     }
 
     pub fn get_client_id(&self) -> Option<String> {
-        let inner = self.inner.read().unwrap();
-
-        inner.client_id.clone()
+        self.inner.read().unwrap().client_id.clone()
     }
 
     async fn fetch_client_id(&self) -> Result<String> {
