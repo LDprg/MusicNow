@@ -1,10 +1,12 @@
 use std::sync::Arc;
 
-use rodio::{Decoder, OutputStreamBuilder, Sink};
+use rodio::{Decoder, OutputStream, OutputStreamBuilder, Sink};
 
 use crate::audio::*;
 
 pub struct AudioSink {
+    #[allow(dead_code)]
+    stream_handle: Arc<OutputStream>,
     sink: Arc<Sink>,
 }
 
@@ -28,6 +30,9 @@ impl Default for AudioSink {
 
         sink.set_volume(0.1);
 
-        Self { sink }
+        Self {
+            stream_handle,
+            sink,
+        }
     }
 }
