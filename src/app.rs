@@ -23,7 +23,14 @@ pub fn App() -> Element {
 #[component]
 fn Home() -> Element {
     rsx!(
+        label { class: "input w-full mb-[8]",
+            Icon { class: "h-[1em]", icon: HiSearch }
+            input { class: "grow", r#type: "search", placeholder: "Search" }
+        }
+
         div { "Site Something" }
+        div { "Site Something" }
+
         div { class: "absolute inset-x-0 bottom-0 m-[8]",
             progress { class: "progress w-full", value: 30, max: 100 }
 

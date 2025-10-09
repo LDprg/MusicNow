@@ -10,15 +10,15 @@ mod prelude;
 mod soundcloud;
 
 use crate::app::*;
-use crate::audio::*;
+// use crate::audio::*;
 use crate::soundcloud::*;
 
 async fn audio_service() {
     let api = SoundCloudApi::default();
     api.login_anonymous().await.unwrap();
 
-    let client_id = api.get_client_id().unwrap();
-    run_audio(client_id).await.unwrap();
+    // let client_id = api.get_client_id().unwrap();
+    // run_audio(client_id).await.unwrap();
 }
 
 fn spawn_services() {
