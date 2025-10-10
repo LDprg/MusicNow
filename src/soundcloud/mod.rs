@@ -13,6 +13,9 @@ struct SoundCloudApiInner {
     client_id: Option<String>,
 }
 
+const SC_URL: &str = "https://soundcloud.com";
+const SC_API_URL: &str = "https://api-v2.soundcloud.com";
+
 impl SoundCloudApi {
     pub async fn login_anonymous(&self) -> Result<()> {
         self.inner.write().unwrap().client_id = Some(self.fetch_client_id().await?);
@@ -24,7 +27,7 @@ impl SoundCloudApi {
     }
 
     async fn fetch_client_id(&self) -> Result<String> {
-        let resp = self.client.get("https://soundcloud.com").send().await?;
+        let resp = self.client.get(SC_URL).send().await?;
         let body = resp.text().await?;
 
         let site = Html::parse_document(&body);
@@ -59,6 +62,8 @@ impl SoundCloudApi {
 
         Ok(client_id.to_string())
     }
+
+    pub async fn search(&self) {}
 }
 
 impl Default for SoundCloudApi {

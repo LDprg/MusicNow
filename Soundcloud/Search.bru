@@ -1,0 +1,27 @@
+meta {
+  name: Search
+  type: http
+  seq: 1
+}
+
+get {
+  url: https://api-v2.soundcloud.com/search?q=ddd&client_id=LAd42S06rwW6N9SO85p7573ak7rH6lMf&limit=20&offset=0
+  body: none
+  auth: inherit
+}
+
+params:query {
+  q: ddd
+  client_id: LAd42S06rwW6N9SO85p7573ak7rH6lMf
+  limit: 20
+  offset: 0
+  ~facet: model
+  ~user_id: 338721-220023-565010-147888
+  ~linked_partitioning: 1
+  ~app_version: 1759936298
+  ~app_locale: en
+}
+
+settings {
+  encodeUrl: true
+}
