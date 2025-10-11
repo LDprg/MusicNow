@@ -17,7 +17,7 @@ MusicNow features:
 
 Since it is a dioxus project it can be simple build and developed using the `dx` tool (see their docs for more info).
 
-For android builds you will need to use the cli from the main branch since it updated the minimum android sdk to 28 which is required for aaudio support. This will change when dioxus 0.7 is fully released.
+For android build use at least dioxus v0.7.0-rc.1 since ir conatins changes in the android sdk version (which are needed for rodio).
 
 ## Where does the music come from?
 
