@@ -3502,6 +3502,7 @@ dependencies = [
  "reqwest",
  "rodio",
  "scraper",
+ "serde",
  "serde_json",
  "tokio",
 ]

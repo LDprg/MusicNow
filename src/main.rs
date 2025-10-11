@@ -18,11 +18,14 @@ mod service {
     use tokio::join;
 
     use crate::audio::*;
+    use crate::prelude::*;
     use crate::soundcloud::*;
 
     async fn audio() {
         let api = SoundCloudApi::default();
         api.login_anonymous().await.unwrap();
+
+        info!("{:#?}", api.search("Believer", 10, 0).await.unwrap());
 
         let client_id = api.get_client_id().unwrap();
         run_audio(client_id).await.unwrap();
