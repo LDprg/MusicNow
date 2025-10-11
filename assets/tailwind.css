@@ -7,6 +7,10 @@
     --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
     monospace;
     --spacing: 0.25rem;
+    --ease-out: cubic-bezier(0, 0, 0.2, 1);
+    --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+    --default-transition-duration: 150ms;
+    --default-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     --default-font-family: var(--font-sans);
     --default-mono-font-family: var(--font-mono);
   }
@@ -296,7 +300,7 @@
     white-space: nowrap;
     width: clamp(3rem, 20rem, 100%);
     height: var(--size);
-    font-size: 0.875rem;
+    font-size: max(var(--font-size, 0.875rem), 0.875rem);
     touch-action: manipulation;
     border-start-start-radius: var(--join-ss, var(--radius-field));
     border-start-end-radius: var(--join-se, var(--radius-field));
@@ -347,6 +351,13 @@
       outline-offset: 2px;
       isolation: isolate;
       z-index: 1;
+    }
+    @media (pointer: coarse) {
+      @supports (-webkit-touch-callout: none) {
+        &:focus, &:focus-within {
+          --font-size: 1rem;
+        }
+      }
     }
     &:has(> input[disabled]), &:is(:disabled, [disabled]), fieldset:disabled & {
       cursor: not-allowed;
@@ -545,8 +556,8 @@
   .bottom-0 {
     bottom: calc(var(--spacing) * 0);
   }
-  .m-\[8\] {
-    margin: 8;
+  .m-\[80\] {
+    margin: 80;
   }
   .label {
     display: inline-flex;
@@ -791,6 +802,20 @@
   }
   :where(.modal[open], .modal-open, .modal-toggle:checked + .modal):not(.modal-start, .modal-end) {
     scrollbar-gutter: stable;
+  }
+  @supports (width: if(else: 1px)) and (animation-timeline: scroll()) {
+    :root {
+      animation: set-page-has-scroll forwards;
+      animation-timeline: scroll();
+    }
+    @keyframes set-page-has-scroll {
+      0%, to {
+        --page-has-scroll: 1;
+      }
+    }
+    :where( :root:has( .modal-open, .modal[open], .modal:target, .modal-toggle:checked, .drawer:not(.drawer-open) > .drawer-toggle:checked ) ) {
+      scrollbar-gutter: if(style(--page-has-scroll: 1): stable; else: unset);
+    }
   }
 }
 @layer base {
