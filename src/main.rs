@@ -1,6 +1,6 @@
 use std::thread;
 
-use dioxus::logger::tracing::Level;
+use dioxus::{logger::tracing::Level, prelude::desktop};
 
 mod app;
 mod components;
@@ -45,5 +45,7 @@ fn main() {
     #[cfg(not(feature = "server"))]
     dioxus::fullstack::set_server_url("http://127.0.0.1:8080");
 
-    dioxus::launch(App);
+    dioxus::LaunchBuilder::new()
+        .with_cfg(desktop!(dioxus::desktop::Config::new().with_menu(None)))
+        .launch(App);
 }

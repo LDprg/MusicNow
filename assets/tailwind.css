@@ -7,10 +7,6 @@
     --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
     monospace;
     --spacing: 0.25rem;
-    --ease-out: cubic-bezier(0, 0, 0.2, 1);
-    --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
-    --default-transition-duration: 150ms;
-    --default-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     --default-font-family: var(--font-sans);
     --default-mono-font-family: var(--font-mono);
   }
@@ -556,8 +552,8 @@
   .bottom-0 {
     bottom: calc(var(--spacing) * 0);
   }
-  .m-\[80\] {
-    margin: 80;
+  .m-\[8\] {
+    margin: 8;
   }
   .label {
     display: inline-flex;

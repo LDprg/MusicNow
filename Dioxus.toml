@@ -34,3 +34,4 @@ script = []
 publisher = "LDprg"
 identifier = "com.ldprg"
 icon = ["assets/icon.png"]
+category = "Music"
