@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use rodio::{Decoder, OutputStream, OutputStreamBuilder, Sink};
 
-use crate::audio::*;
+use super::*;
 
 pub struct AudioSink {
     #[allow(dead_code)]
