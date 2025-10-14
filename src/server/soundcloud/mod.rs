@@ -1,16 +1,18 @@
 use crate::prelude::*;
 
+use format_serde_error::SerdeError;
 use regex::Regex;
-use reqwest::Url;
+use reqwest::StatusCode;
 use scraper::{Html, Selector};
-use serde::Deserialize;
-use std::sync::{Arc, RwLock};
+use std::sync::{Arc, LazyLock, RwLock};
 
+#[derive(Clone, Debug)]
 pub struct SoundCloudApi {
     client: reqwest::Client,
     inner: Arc<RwLock<SoundCloudApiInner>>,
 }
 
+#[derive(Debug)]
 struct SoundCloudApiInner {
     client_id: Option<String>,
 }
@@ -18,43 +20,23 @@ struct SoundCloudApiInner {
 const SC_URL: &str = "https://soundcloud.com";
 const SC_API_URL: &str = "https://api-v2.soundcloud.com";
 
-#[derive(Deserialize, Debug)]
-#[allow(dead_code)]
-pub struct SearchApi {
-    pub collection: Vec<SearchElementApi>,
-    pub total_results: u64,
-    pub next_href: Url,
-    pub query_urn: String,
-}
-
-#[derive(Deserialize, Debug)]
-#[allow(dead_code)]
-#[serde(tag = "kind", rename_all = "lowercase")]
-pub enum SearchElementApi {
-    Track(SearchTrackApi),
-    User(SearchUserApi),
-}
-
-#[derive(Deserialize, Debug)]
-#[allow(dead_code)]
-pub struct SearchTrackApi {
-    pub artwork_url: Url,
-    pub id: u64,
-    pub title: String,
-    pub urn: String,
-    pub user_id: u64,
-}
-
-#[derive(Deserialize, Debug)]
-#[allow(dead_code)]
-pub struct SearchUserApi {
-    pub avatar_url: Url,
-    pub id: u64,
-    pub full_name: String,
-    pub urn: String,
-}
+static SINGLETON_API: LazyLock<SoundCloudApi> = LazyLock::new(|| SoundCloudApi::new());
 
 impl SoundCloudApi {
+    fn new() -> Self {
+        let client = reqwest::Client::builder()
+            .user_agent(
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:136.0) Gecko/20100101 Firefox/136.0",
+            )
+            .build()
+            .unwrap();
+
+        Self {
+            client,
+            inner: Arc::new(RwLock::new(SoundCloudApiInner { client_id: None })),
+        }
+    }
+
     pub async fn login_anonymous(&self) -> Result<()> {
         self.inner.write().unwrap().client_id = Some(self.fetch_client_id().await?);
         Ok(())
@@ -116,22 +98,29 @@ impl SoundCloudApi {
             .send()
             .await?;
 
-        Ok(resp.json::<SearchApi>().await?)
+        if resp.status() != StatusCode::OK {
+            error!("{:#?}", resp);
+            Err(anyhow!(resp.text().await?))
+        } else {
+            // let json = resp.json::<SearchApi>().await;
+            let text = resp.text().await?;
+            let json =
+                serde_json::from_str::<SearchApi>(&text).map_err(|err| SerdeError::new(text, err));
+
+            match json {
+                Err(err) => {
+                    error!("Error decoding json: {}", err);
+                    Err(anyhow!(err))
+                }
+                Ok(json) => Ok(json),
+            }
+        }
+        // Ok(resp.json::<SearchApi>().await?)
     }
 }
 
 impl Default for SoundCloudApi {
     fn default() -> Self {
-        let client = reqwest::Client::builder()
-            .user_agent(
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:136.0) Gecko/20100101 Firefox/136.0",
-            )
-            .build()
-            .unwrap();
-
-        Self {
-            client,
-            inner: Arc::new(RwLock::new(SoundCloudApiInner { client_id: None })),
-        }
+        SINGLETON_API.clone()
     }
 }

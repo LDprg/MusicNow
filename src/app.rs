@@ -1,3 +1,4 @@
+use crate::prelude::*;
 use dioxus::prelude::*;
 use dioxus_free_icons::{Icon, icons::hi_solid_icons::*};
 
@@ -20,51 +21,87 @@ pub fn App() -> Element {
     }
 }
 
+fn render_list(search: ReadSignal<SearchApi>) -> Element {
+    rsx!(
+        for item in &search.read().collection {
+            if let SearchElementApi::Track(track) = item {
+                if let Some(url) = &track.artwork_url {
+                    img { src: url.to_string() }
+                }
+                div { "{track.title}" }
+            }
+        }
+    )
+}
+
 #[component]
 fn Home() -> Element {
+    let mut search_fn = use_action(search);
+    let search_res = use_memo(move || {
+        search_fn.result().map(|v| match v {
+            Ok(search) => render_list(search),
+            Err(err) => rsx!( "{err}" ),
+        })
+    });
+
     rsx!(
-        label { class: "input w-full mb-[8]",
-            Icon { class: "h-[1em]", icon: HiSearch }
-            input { class: "grow", r#type: "search", placeholder: "Search" }
-        }
-
-        div { "Site Something" }
-        div { "Site Something" }
-
-        div { class: "absolute inset-x-0 bottom-0 m-[8]",
-            progress { class: "progress w-full", value: 30, max: 100 }
-
-            div { class: "flex justify-items-center items-center w-full",
-                div { width: "50px", height: "50px",
-                    Icon { width: 50, height: 50, icon: HiBeaker }
-                }
-                div { "Song" }
-                div { class: "grow flex justify-center items-center",
-                    button {
-                        class: "btn btn-square",
-                        width: "30px",
-                        height: "30px",
-                        Icon { width: 30, height: 30, icon: HiArrowCircleLeft }
-                    }
-                    button {
-                        class: "btn btn-square",
-                        width: "30px",
-                        height: "30px",
-                        Icon { width: 30, height: 30, icon: HiPlay }
-                    }
-                    button {
-                        class: "btn btn-square",
-                        width: "30px",
-                        height: "30px",
-                        Icon { width: 30, height: 30, icon: HiArrowCircleRight }
-                    }
-                }
+        div { class: "grid grid-rows-[auto_1fr_auto] h-screen overflow-hidden",
+            label { class: "input w-full mb-[8]",
+                Icon { class: "h-[1em]", icon: HiSearch }
                 input {
-                    class: "range range-xs w-1/6",
-                    r#type: "range",
-                    min: 0,
-                    max: 100,
-                    value: 50,
+                    class: "grow",
+                    r#type: "search",
+                    placeholder: "Search",
+
+                    oninput: move |event| async move { search_fn.call(event.value(), 20, 0).await },
+                }
+            }
+
+            div { class: "overflow-auto", {search_res()} }
+
+            div { class: "m-[8]",
+                progress { class: "progress w-full", value: 30, max: 100 }
+
+                div { class: "flex justify-items-center items-center w-full",
+                    div { width: "50px", height: "50px",
+                        Icon { width: 50, height: 50, icon: HiBeaker }
+                    }
+                    div { "Song" }
+                    div { class: "grow flex justify-center items-center",
+                        button {
+                            class: "btn btn-square",
+                            width: "30px",
+                            height: "30px",
+                            Icon {
+                                width: 30,
+                                height: 30,
+                                icon: HiArrowCircleLeft,
+                            }
+                        }
+                        button {
+                            class: "btn btn-square",
+                            width: "30px",
+                            height: "30px",
+                            Icon { width: 30, height: 30, icon: HiPlay }
+                        }
+                        button {
+                            class: "btn btn-square",
+                            width: "30px",
+                            height: "30px",
+                            Icon {
+                                width: 30,
+                                height: 30,
+                                icon: HiArrowCircleRight,
+                            }
+                        }
+                    }
+                    input {
+                        class: "range range-xs w-1/6",
+                        r#type: "range",
+                        min: 0,
+                        max: 100,
+                        value: 50,
+                    }
                 }
             }
         }

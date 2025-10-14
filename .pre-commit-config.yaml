@@ -23,12 +23,6 @@ repos:
       - id: trailing-whitespace
   - repo: local
     hooks:
-      - id: cargo-fmt
-        name: cargo fmt
-        entry: cargo fmt
-        language: system
-        types: [rust]
-        pass_filenames: false
       - id: dx-fmt
         name: dx fmt
         entry: dx fmt
