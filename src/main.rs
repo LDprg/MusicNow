@@ -1,6 +1,7 @@
+#[cfg(feature = "server")]
 use std::thread;
 
-use dioxus::{logger::tracing::Level, prelude::desktop};
+use crate::prelude::*;
 
 mod app;
 mod components;
@@ -8,7 +9,6 @@ mod prelude;
 mod server;
 
 use crate::app::*;
-use crate::server::*;
 
 fn main() {
     dioxus::logger::init(Level::INFO).expect("failed to init logger");

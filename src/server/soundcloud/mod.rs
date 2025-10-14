@@ -98,24 +98,17 @@ impl SoundCloudApi {
             .send()
             .await?;
 
-        if resp.status() != StatusCode::OK {
-            error!("{:#?}", resp);
-            Err(anyhow!(resp.text().await?))
-        } else {
-            // let json = resp.json::<SearchApi>().await;
-            let text = resp.text().await?;
-            let json =
-                serde_json::from_str::<SearchApi>(&text).map_err(|err| SerdeError::new(text, err));
+        let text = resp.text().await?;
+        let json =
+            serde_json::from_str::<SearchApi>(&text).map_err(|err| SerdeError::new(text, err));
 
-            match json {
-                Err(err) => {
-                    error!("Error decoding json: {}", err);
-                    Err(anyhow!(err))
-                }
-                Ok(json) => Ok(json),
+        match json {
+            Err(err) => {
+                error!("Error decoding json: {}", err);
+                Err(anyhow!(err))
             }
+            Ok(json) => Ok(json),
         }
-        // Ok(resp.json::<SearchApi>().await?)
     }
 }
 
