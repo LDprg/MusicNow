@@ -73,3 +73,10 @@ pub async fn is_player() -> Result<bool> {
 
     Ok(player.is_paused())
 }
+
+#[get("/api/player/progress")]
+pub async fn progress() -> Result<f64> {
+    let player = AudioPlayer::default();
+
+    player.progress()
+}

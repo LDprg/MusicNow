@@ -21,18 +21,31 @@ pub fn App() -> Element {
     }
 }
 
+#[derive(Clone)]
+struct PlayerContext {
+    pub current_track: Signal<Option<SearchTrackApi>>,
+}
+
 #[component]
 fn SongItems(search: ReadSignal<SearchApi>) -> Element {
     let search = search.read();
     let items = search.collection.iter().map(move |item| {
         if let SearchElementApi::Track(track) = item {
-            let id = track.id;
+            let new_track = track.clone();
             rsx!(
                 div {
                     class: "flex m-[8]",
-                    onclick: move |_| async move {
-                        play(id).await?;
-                        Ok(())
+                    onclick: move |_| {
+                        let track = new_track.clone();
+
+                        async move {
+                            let mut player = use_context::<PlayerContext>();
+
+                            play(track.id).await?;
+
+                            *player.current_track.write() = Some(*track);
+                            Ok(())
+                        }
                     },
                     if let Some(url) = &track.artwork_url {
                         img { src: url.to_string() }
@@ -41,12 +54,10 @@ fn SongItems(search: ReadSignal<SearchApi>) -> Element {
                         "{track.title}"
                         br {}
                         br {}
-                        if let Some(publisher_metadata) = &track.publisher_metadata {
-                            if let Some(artist) = &publisher_metadata.artist {
-                                "{artist}"
-                            } else if let Some(user) = &track.user {
-                                "{user.username}"
-                            }
+                        if let Some(publisher_metadata) = &track.publisher_metadata
+                            && let Some(artist) = &publisher_metadata.artist
+                        {
+                            "{artist}"
                         } else if let Some(user) = &track.user {
                             "{user.username}"
                         }
@@ -66,6 +77,15 @@ fn SongItems(search: ReadSignal<SearchApi>) -> Element {
 
 #[component]
 fn Home() -> Element {
+    let mut player = use_context_provider(|| PlayerContext {
+        current_track: Signal::new(None),
+    });
+
+    // let mut progress_fn = use_action(progress);
+    // let progress_res = use_memo(move || {
+    //     progress_fn.value().unwrap_or(use_signal(|| 100.0 as f64))
+    // });
+
     let mut search_fn = use_action(search);
     let search_res = use_memo(move || {
         search_fn.value().map(|v| match v {
@@ -96,9 +116,21 @@ fn Home() -> Element {
 
                 div { class: "flex justify-items-center items-center w-full",
                     div { width: "50px", height: "50px",
-                        Icon { width: 50, height: 50, icon: HiBeaker }
+                        if let Some(track) = &*player.current_track.read()
+                            && let Some(url) = &track.artwork_url
+                        {
+                            img { width: 50, height: 50, src: url.to_string() }
+                        } else {
+                            Icon { width: 50, height: 50, icon: HiBeaker }
+                        }
                     }
-                    div { "Song" }
+                    div {
+                        if let Some(track) = &*player.current_track.read() {
+                            {track.title.clone()}
+                        } else {
+                            "Song"
+                        }
+                    }
                     div { class: "grow flex justify-center items-center",
                         button {
                             class: "btn btn-square",

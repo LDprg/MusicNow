@@ -4,6 +4,7 @@ use crate::prelude::*;
 
 use bytes::Bytes;
 use dioxus::logger::tracing::info;
+use m3u8_rs::MediaPlaylist;
 use reqwest::Url;
 use tokio::task::{JoinHandle, spawn_blocking};
 
@@ -24,6 +25,7 @@ pub struct AudioPlayer {
 #[derive(Debug)]
 struct AudioPlayerInner {
     download_task: Option<JoinHandle<Result<()>>>,
+    playlist: Option<MediaPlaylist>,
 }
 
 impl AudioPlayer {
@@ -32,6 +34,7 @@ impl AudioPlayer {
             sink: AudioSink::default(),
             inner: Arc::new(Mutex::new(AudioPlayerInner {
                 download_task: None,
+                playlist: None,
             })),
         }
     }
@@ -51,6 +54,7 @@ impl AudioPlayer {
         info!("Starting playback");
         let sink = self.sink.clone();
 
+        let segments = playlist.segments.clone();
         let handle: JoinHandle<Result<()>> = tokio::spawn(async move {
             let stream = AudioStreamer::default();
 
@@ -65,7 +69,7 @@ impl AudioPlayer {
 
             info!("Starting stream");
 
-            for segment in playlist.segments {
+            for segment in segments {
                 if let Some(map) = &segment.map {
                     let resp = reqwest::get(&map.uri).await?;
                     let data = resp.bytes().await?;
@@ -88,6 +92,7 @@ impl AudioPlayer {
         info!("Playback started");
 
         inner.download_task = Some(handle);
+        inner.playlist = Some(playlist);
         Ok(())
     }
 
@@ -101,6 +106,16 @@ impl AudioPlayer {
 
     pub fn is_paused(&self) -> bool {
         self.sink.is_paused()
+    }
+
+    pub fn progress(&self) -> Result<f64> {
+        let inner = self.inner.lock().unwrap();
+        if let Some(playlist) = &inner.playlist {
+            let duration = playlist.target_duration;
+            Ok(100.0 * self.sink.postion().as_millis() as f64 / duration as f64)
+        } else {
+            Err(anyhow!("No Song playing"))
+        }
     }
 }
 
