@@ -2,7 +2,6 @@ use crate::prelude::*;
 
 use format_serde_error::SerdeError;
 use regex::Regex;
-use reqwest::StatusCode;
 use scraper::{Html, Selector};
 use std::sync::{Arc, LazyLock, RwLock};
 

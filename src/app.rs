@@ -38,7 +38,7 @@ fn render_list(search: ReadSignal<SearchApi>) -> Element {
 fn Home() -> Element {
     let mut search_fn = use_action(search);
     let search_res = use_memo(move || {
-        search_fn.result().map(|v| match v {
+        search_fn.value().map(|v| match v {
             Ok(search) => render_list(search),
             Err(err) => rsx!( "{err}" ),
         })
