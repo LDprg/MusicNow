@@ -2,11 +2,10 @@ use dioxus::logger::tracing::info;
 use rodio::Decoder;
 use rodio::decoder::DecoderError;
 use std::{
-    io::{self, Read, Seek, SeekFrom},
-    sync::{
+    fmt, io::{self, Read, Seek, SeekFrom}, sync::{
         Arc, Mutex,
         mpsc::{self, channel},
-    },
+    }
 };
 
 #[derive(Clone)]
@@ -97,3 +96,10 @@ impl TryFrom<AudioStreamer> for Decoder<AudioStreamer> {
         Self::new(data)
     }
 }
+
+impl fmt::Debug for AudioStreamer {
+    fn fmt(&self, _: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
+        Ok(())
+    }
+}
+

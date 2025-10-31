@@ -3489,6 +3489,7 @@ name = "music-now"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "bytes",
  "dioxus",
  "dioxus-free-icons",
  "format_serde_error",

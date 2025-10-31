@@ -1,0 +1,20 @@
+meta {
+  name: Tracks
+  type: http
+  seq: 3
+}
+
+get {
+  url: https://api-v2.soundcloud.com/tracks?ids=271224938&client_id=xwYTVSni6n4FghaI0c4uJ8T9c4pyJ3rh
+  body: none
+  auth: inherit
+}
+
+params:query {
+  ids: 271224938
+  client_id: xwYTVSni6n4FghaI0c4uJ8T9c4pyJ3rh
+}
+
+settings {
+  encodeUrl: true
+}

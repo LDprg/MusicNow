@@ -2,8 +2,13 @@ use crate::prelude::*;
 
 use format_serde_error::SerdeError;
 use regex::Regex;
+use reqwest::Url;
 use scraper::{Html, Selector};
-use std::sync::{Arc, LazyLock, RwLock};
+use serde_json::Value;
+use std::{
+    sync::{Arc, LazyLock, RwLock},
+};
+use bytes::Bytes;
 
 #[derive(Clone, Debug)]
 pub struct SoundCloudApi {
@@ -104,6 +109,56 @@ impl SoundCloudApi {
             }
             Ok(json) => Ok(json),
         }
+    }
+
+    pub async fn tracks(&self, track_id: u64) -> Result<TracksApi> {
+        let resp = self
+            .client
+            .get(format!("{}{}", SC_API_URL, "/tracks"))
+            .query(&[
+                ("ids", track_id.to_string()),
+                ("client_id", self.get_client_id()?),
+            ])
+            .send()
+            .await?;
+
+        let text = resp.text().await?;
+        let json =
+            serde_json::from_str::<TracksApi>(&text).map_err(|err| SerdeError::new(text, err));
+
+        match json {
+            Err(err) => {
+                error!("Error decoding json: {}", err);
+                Err(anyhow!(err))
+            }
+            Ok(json) => Ok(json),
+        }
+    }
+
+    pub async fn stream(&self, url: Url) -> Result<Bytes> {
+        info!("Url from: {}", url);
+        let resp = self
+            .client
+            .get(url)
+            .query(&[("client_id", self.get_client_id()?)])
+            .send()
+            .await?;
+        let url: Value = resp.json().await?;
+        let url = url
+            .get("url")
+            .ok_or(anyhow!("Url missing"))?
+            .as_str()
+            .ok_or(anyhow!("Fatal failure"))?
+            .to_string();
+
+        info!("Data from: {}", url);
+        let resp = self
+            .client
+            .get(url)
+            .send()
+            .await?;
+
+        Ok(resp.bytes().await?)
     }
 }
 

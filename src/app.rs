@@ -23,10 +23,17 @@ pub fn App() -> Element {
 
 #[component]
 fn SongItems(search: ReadSignal<SearchApi>) -> Element {
-    rsx!(
-        for item in &search.read().collection {
-            if let SearchElementApi::Track(track) = item {
-                div { class: "flex m-[8]", onclick: move |_| async move {},
+    let search = search.read();
+    let items = search.collection.iter().map(move |item| {
+        if let SearchElementApi::Track(track) = item {
+            let id = track.id;
+            rsx!(
+                div {
+                    class: "flex m-[8]",
+                    onclick: move |_| async move {
+                        play(id).await?;
+                        Ok(())
+                    },
                     if let Some(url) = &track.artwork_url {
                         img { src: url.to_string() }
                     }
@@ -37,8 +44,14 @@ fn SongItems(search: ReadSignal<SearchApi>) -> Element {
                         "{track.urn}"
                     }
                 }
-            }
+            )
+        } else {
+            rsx!()
         }
+    });
+
+    rsx!(
+        {items}
     )
 }
 

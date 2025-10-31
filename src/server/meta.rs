@@ -1,6 +1,8 @@
 use reqwest::Url;
 use serde::{Deserialize, Serialize};
 
+// Search Api
+
 #[derive(Serialize, Deserialize, Debug)]
 #[allow(dead_code)]
 pub struct SearchApi {
@@ -45,4 +47,34 @@ pub struct SearchPlaylistApi {
     pub id: u64,
     pub title: String,
     pub user_id: u64,
+}
+
+// Track Api
+
+#[allow(dead_code)]
+pub type TracksApi = Vec<TrackElementApi>;
+
+#[derive(Serialize, Deserialize, Debug)]
+#[allow(dead_code)]
+pub struct TrackElementApi {
+    pub artwork_url: Url,
+    pub id: u64,
+    pub title: String,
+    pub user_id: u64,
+    pub media: TrackMediaApi,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[allow(dead_code)]
+pub struct TrackMediaApi {
+    pub transcodings: Vec<TrackTranscodeApi>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[allow(dead_code)]
+pub struct TrackTranscodeApi {
+    pub url: Url,
+    pub preset: String,
+    pub duration: u64,
+    pub is_legacy_transcoding: bool,
 }

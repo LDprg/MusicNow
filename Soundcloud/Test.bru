@@ -1,13 +1,17 @@
 meta {
   name: Test
   type: http
-  seq: 2
+  seq: 4
 }
 
 get {
-  url: https://api-v2.soundcloud.com/media/soundcloud:tracks:1693268814/34435be4-5fb4-45e6-a056-be17ce9451c3/stream/progressive
+  url: https://api-v2.soundcloud.com/media/soundcloud:tracks:271224938/6ff19aa3-45c3-493d-8f39-9888d426fde3/stream/ctr-encrypted-hls?client_id=xwYTVSni6n4FghaI0c4uJ8T9c4pyJ3rh
   body: none
   auth: inherit
+}
+
+params:query {
+  client_id: xwYTVSni6n4FghaI0c4uJ8T9c4pyJ3rh
 }
 
 settings {

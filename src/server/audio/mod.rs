@@ -1,8 +1,11 @@
+use std::sync::{Arc, LazyLock, Mutex};
+
 use crate::prelude::*;
 
+use bytes::Bytes;
 use dioxus::logger::tracing::info;
-use serde_json::Value;
-use tokio::task::spawn_blocking;
+use reqwest::Url;
+use tokio::task::{JoinHandle, spawn_blocking};
 
 mod sink;
 mod stream;
@@ -10,58 +13,89 @@ mod stream;
 use sink::*;
 use stream::*;
 
-#[allow(unused)]
-pub async fn run_audio(client_id: String) -> Result<()> {
-    let resp = reqwest::get(format!("https://api-v2.soundcloud.com/media/soundcloud:tracks:1301000134/4d4ac9de-2dcd-440d-ab81-2e2a7d76282b/stream/hls?client_id={}", client_id)).await?;
-    let url: Value = resp.json().await?;
-    let url = url.get("url").unwrap().as_str().unwrap().to_string();
+static SINGLETON_PLAYER: LazyLock<AudioPlayer> = LazyLock::new(|| AudioPlayer::new());
 
-    info!("Url: {}", url);
-
-    let resp = reqwest::get(url).await?;
-    let stream = resp.bytes().await?;
-
-    let playlist =
-        m3u8_rs::parse_media_playlist_res(&stream).map_err(|e| anyhow!(e.to_string()))?;
-
-    let stream = AudioStreamer::default();
-    let music_player = spawn_blocking({
-        let stream = stream.clone();
-        move || -> Result<()> { play_music(stream) }
-    });
-
-    for segment in playlist.segments {
-        if let Some(map) = &segment.map {
-            info!("Download Segment Map!");
-            let resp = reqwest::get(&map.uri).await?;
-            let data = resp.bytes().await?;
-
-            stream.append(&data);
-        }
-
-        info!("Download Segment!");
-        let resp = reqwest::get(&segment.uri).await?;
-        let data = resp.bytes().await?;
-        stream.append(&data);
-    }
-
-    stream.finish();
-
-    music_player.await??;
-
-    Ok(())
+#[derive(Clone, Debug)]
+pub struct AudioPlayer {
+    sink: AudioSink,
+    inner: Arc<Mutex<AudioPlayerInner>>,
 }
 
-fn play_music(stream: AudioStreamer) -> Result<()> {
-    let sink = AudioSink::default();
+#[derive(Debug)]
+struct AudioPlayerInner {
+    download_task: Option<JoinHandle<Result<()>>>,
+}
 
-    sink.play(stream)?;
+impl AudioPlayer {
+    fn new() -> Self {
+        Self {
+            sink: AudioSink::default(),
+            inner: Arc::new(Mutex::new(AudioPlayerInner {
+                download_task: None,
+            })),
+        }
+    }
 
-    info!("Wait");
+    pub async fn play(&self, stream: Bytes) -> Result<()> {
+        let mut inner = self.inner.lock().unwrap();
 
-    sink.sleep();
+        if let Some(handle) = inner.download_task.take() {
+            handle.abort();
+        }
 
-    info!("End");
+        info!("Parsing m3u8");
 
-    Ok(())
+        let playlist =
+            m3u8_rs::parse_media_playlist_res(&stream).map_err(|e| anyhow!(e.to_string()))?;
+
+        info!("Starting playback");
+        let sink = self.sink.clone();
+
+        let handle: JoinHandle<Result<()>> = tokio::spawn(async move {
+            let stream = AudioStreamer::default();
+
+            info!("Starting audio");
+            let music_player = spawn_blocking({
+                let stream = stream.clone();
+                move || -> Result<()> {
+                    info!("Playing audio");
+                    sink.play(stream)
+                }
+            });
+
+            info!("Starting stream");
+
+            for segment in playlist.segments {
+                if let Some(map) = &segment.map {
+                    info!("Download Segment Map!");
+                    let resp = reqwest::get(&map.uri).await?;
+                    let data = resp.bytes().await?;
+
+                    stream.append(&data);
+                }
+
+                info!("Download Segment!");
+                let resp = reqwest::get(&segment.uri).await?;
+                let data = resp.bytes().await?;
+                stream.append(&data);
+            }
+
+            stream.finish();
+
+            music_player.await??;
+
+            Ok(())
+        });
+
+        info!("Playback started");
+
+        inner.download_task = Some(handle);
+        Ok(())
+    }
+}
+
+impl Default for AudioPlayer {
+    fn default() -> Self {
+        SINGLETON_PLAYER.clone()
+    }
 }

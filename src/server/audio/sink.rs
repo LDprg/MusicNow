@@ -1,9 +1,11 @@
+use std::fmt;
 use std::sync::Arc;
 
 use rodio::{Decoder, OutputStream, OutputStreamBuilder, Sink};
 
 use super::*;
 
+#[derive(Clone)]
 pub struct AudioSink {
     #[allow(dead_code)]
     stream_handle: Arc<OutputStream>,
@@ -14,6 +16,9 @@ pub struct AudioSink {
 impl AudioSink {
     pub fn play(&self, stream: AudioStreamer) -> Result<()> {
         let source = Decoder::try_from(stream)?;
+        self.sink.clear();
+        self.sink.play();
+
         self.sink.append(source);
         Ok(())
     }
@@ -34,5 +39,11 @@ impl Default for AudioSink {
             stream_handle,
             sink,
         }
+    }
+}
+
+impl fmt::Debug for AudioSink {
+    fn fmt(&self, _: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
+        Ok(())
     }
 }
