@@ -37,17 +37,6 @@ impl SoundCloudApi {
     }
 
     pub async fn login_anonymous(&self) -> Result<()> {
-        self.inner.write().unwrap().client_id = Some(self.fetch_client_id().await?);
-        Ok(())
-    }
-
-    pub fn get_client_id(&self) -> Result<String> {
-        self.inner.read().unwrap().client_id.clone().ok_or(anyhow!(
-            "Client needs to login first before accessing client id!"
-        ))
-    }
-
-    async fn fetch_client_id(&self) -> Result<String> {
         let resp = self.client.get(SC_URL).send().await?;
         let body = resp.text().await?;
 
@@ -77,11 +66,18 @@ impl SoundCloudApi {
         let client_id = body.get(pos + start.len()..).unwrap();
 
         let pos = client_id.find(end).unwrap();
-        let client_id = client_id.get(..pos).unwrap();
+        let client_id = client_id.get(..pos).unwrap().to_string();
 
         info!("{}", client_id);
 
-        Ok(client_id.to_string())
+        self.inner.write().unwrap().client_id = Some(client_id);
+        Ok(())
+    }
+
+    pub fn get_client_id(&self) -> Result<String> {
+        self.inner.read().unwrap().client_id.clone().ok_or(anyhow!(
+            "Client needs to login first before accessing client id!"
+        ))
     }
 
     pub async fn search(&self, query: &str, limit: usize, offset: usize) -> Result<SearchApi> {

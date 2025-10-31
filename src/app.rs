@@ -21,14 +21,22 @@ pub fn App() -> Element {
     }
 }
 
-fn render_list(search: ReadSignal<SearchApi>) -> Element {
+#[component]
+fn SongItems(search: ReadSignal<SearchApi>) -> Element {
     rsx!(
         for item in &search.read().collection {
             if let SearchElementApi::Track(track) = item {
-                if let Some(url) = &track.artwork_url {
-                    img { src: url.to_string() }
+                div { class: "flex m-[8]", onclick: move |_| async move {},
+                    if let Some(url) = &track.artwork_url {
+                        img { src: url.to_string() }
+                    }
+                    div {
+                        "{track.title}"
+                        br {}
+                        br {}
+                        "{track.urn}"
+                    }
                 }
-                div { "{track.title}" }
             }
         }
     )
@@ -39,7 +47,9 @@ fn Home() -> Element {
     let mut search_fn = use_action(search);
     let search_res = use_memo(move || {
         search_fn.value().map(|v| match v {
-            Ok(search) => render_list(search),
+            Ok(search) => rsx!(
+                SongItems { search }
+            ),
             Err(err) => rsx!( "{err}" ),
         })
     });
