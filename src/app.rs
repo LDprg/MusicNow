@@ -41,7 +41,15 @@ fn SongItems(search: ReadSignal<SearchApi>) -> Element {
                         "{track.title}"
                         br {}
                         br {}
-                        "{track.urn}"
+                        if let Some(publisher_metadata) = &track.publisher_metadata {
+                            if let Some(artist) = &publisher_metadata.artist {
+                                "{artist}"
+                            } else if let Some(user) = &track.user {
+                                "{user.username}"
+                            }
+                        } else if let Some(user) = &track.user {
+                            "{user.username}"
+                        }
                     }
                 }
             )
@@ -52,6 +60,7 @@ fn SongItems(search: ReadSignal<SearchApi>) -> Element {
 
     rsx!(
         {items}
+
     )
 }
 

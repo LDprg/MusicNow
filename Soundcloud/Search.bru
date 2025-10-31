@@ -1,20 +1,21 @@
 meta {
   name: Search
   type: http
-  seq: 1
+  seq: 2
 }
 
 get {
-  url: https://api-v2.soundcloud.com/search?q=believer&client_id=xwYTVSni6n4FghaI0c4uJ8T9c4pyJ3rh&limit=20&offset=0
+  url: https://api-v2.soundcloud.com/search?q=Silent Child&client_id=xwYTVSni6n4FghaI0c4uJ8T9c4pyJ3rh&limit=20&offset=0&kind=track
   body: none
   auth: inherit
 }
 
 params:query {
-  q: believer
+  q: Silent Child
   client_id: xwYTVSni6n4FghaI0c4uJ8T9c4pyJ3rh
   limit: 20
   offset: 0
+  kind: track
   ~facet: model
   ~user_id: 338721-220023-565010-147888
   ~linked_partitioning: 1

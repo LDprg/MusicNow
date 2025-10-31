@@ -67,14 +67,12 @@ impl AudioPlayer {
 
             for segment in playlist.segments {
                 if let Some(map) = &segment.map {
-                    info!("Download Segment Map!");
                     let resp = reqwest::get(&map.uri).await?;
                     let data = resp.bytes().await?;
 
                     stream.append(&data);
                 }
 
-                info!("Download Segment!");
                 let resp = reqwest::get(&segment.uri).await?;
                 let data = resp.bytes().await?;
                 stream.append(&data);
@@ -91,6 +89,18 @@ impl AudioPlayer {
 
         inner.download_task = Some(handle);
         Ok(())
+    }
+
+    pub fn pause(&self) {
+        self.sink.pause();
+    }
+
+    pub fn resume(&self) {
+        self.sink.resume();
+    }
+
+    pub fn is_paused(&self) -> bool {
+        self.sink.is_paused()
     }
 }
 

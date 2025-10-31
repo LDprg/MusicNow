@@ -23,6 +23,18 @@ impl AudioSink {
         Ok(())
     }
 
+    pub fn pause(&self) {
+        self.sink.pause();
+    }
+
+    pub fn resume(&self) {
+        self.sink.play();
+    }
+
+    pub fn is_paused(&self) -> bool {
+        self.sink.is_paused()
+    }
+
     pub fn sleep(&self) {
         self.sink.sleep_until_end();
     }
