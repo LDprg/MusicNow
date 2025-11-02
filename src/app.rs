@@ -81,11 +81,17 @@ fn SongItems(search: ReadSignal<SearchApi>) -> Element {
 
 #[component]
 fn Home() -> Element {
-    let mut socket = use_websocket(|| status_ws(WebSocketOptions::new()));
-
     let player = use_context_provider(|| PlayerContext {
         current_track: Signal::new(None),
     });
+
+    let mut position = use_signal(|| Duration::ZERO);
+    let mut duration = use_signal(|| Duration::ZERO);
+    let mut is_paused = use_signal(|| true);
+    let mut volume = use_signal(|| 50.0);
+
+    let mut socket = use_websocket(|| status_ws(WebSocketOptions::new()));
+    let mut search_fn = use_action(search);
 
     use_future(move || async move {
         _ = socket.send(ClientEvent::GetVolume).await;
@@ -102,12 +108,6 @@ fn Home() -> Element {
             _ = socket.send(ClientEvent::Play(track.id)).await;
         }
     });
-
-    let mut position = use_signal(|| Duration::ZERO);
-
-    let mut duration = use_signal(|| Duration::ZERO);
-    let mut is_paused = use_signal(|| true);
-    let mut volume = use_signal(|| 50.0);
 
     use_future(move || async move {
         while let Ok(msg) = socket.recv().await {
@@ -131,14 +131,12 @@ fn Home() -> Element {
     use_future(move || async move {
         loop {
             TimeoutFuture::new(10).await;
-            if !is_paused()
-            {
+            if !is_paused() {
                 *position.write() = position() + Duration::from_millis(10);
             }
         }
     });
 
-    let mut search_fn = use_action(search);
     let search_res = use_memo(move || {
         search_fn.value().map(|v| match v {
             Ok(search) => rsx!(

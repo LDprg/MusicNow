@@ -44,7 +44,9 @@ pub async fn status_ws(options: WebSocketOptions) -> Result<Websocket<ClientEven
             let err = async || -> Result<()> {
                 match msg {
                     ClientEvent::GetPostion => {
-                        socket.send(ServerEvent::Position(player.position())).await?;
+                        socket
+                            .send(ServerEvent::Position(player.position()))
+                            .await?;
                         Ok(())
                     }
                     ClientEvent::Play(track_id) => {
@@ -83,20 +85,28 @@ pub async fn status_ws(options: WebSocketOptions) -> Result<Websocket<ClientEven
 
                         player.play(data).await?;
                         socket.send(ServerEvent::IsPaused(false)).await?;
-                        socket.send(ServerEvent::Duration(player.duration())).await?;
-                        socket.send(ServerEvent::Position(player.position())).await?;
+                        socket
+                            .send(ServerEvent::Duration(player.duration()))
+                            .await?;
+                        socket
+                            .send(ServerEvent::Position(player.position()))
+                            .await?;
                         Ok(())
                     }
                     ClientEvent::Pause => {
                         player.pause();
                         socket.send(ServerEvent::IsPaused(true)).await?;
-                        socket.send(ServerEvent::Position(player.position())).await?;
+                        socket
+                            .send(ServerEvent::Position(player.position()))
+                            .await?;
                         Ok(())
                     }
                     ClientEvent::Resume => {
                         player.resume();
                         socket.send(ServerEvent::IsPaused(false)).await?;
-                        socket.send(ServerEvent::Position(player.position())).await?;
+                        socket
+                            .send(ServerEvent::Position(player.position()))
+                            .await?;
                         Ok(())
                     }
                     ClientEvent::SetVolume(value) => {

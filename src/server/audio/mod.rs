@@ -1,4 +1,7 @@
-use std::{sync::{Arc, LazyLock, Mutex}, time::Duration};
+use std::{
+    sync::{Arc, LazyLock, Mutex},
+    time::Duration,
+};
 
 use crate::prelude::*;
 
