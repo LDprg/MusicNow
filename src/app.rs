@@ -2,6 +2,7 @@ use std::time::Duration;
 
 use crate::prelude::*;
 use dioxus::{
+    core::Task,
     fullstack::{WebSocketOptions, use_websocket},
     prelude::*,
 };
@@ -109,6 +110,10 @@ fn Home() -> Element {
         }
     });
 
+    use_resource(move || async move {
+        TimeoutFuture::new(500).await; // Prevent million requests
+    });
+
     use_future(move || async move {
         while let Ok(msg) = socket.recv().await {
             match msg {
@@ -155,7 +160,10 @@ fn Home() -> Element {
                     r#type: "search",
                     placeholder: "Search",
 
-                    oninput: move |event| async move { search_fn.call(event.value(), 20, 0).await },
+                    oninput: move |event| async move {
+                        search_fn.cancel();
+                        search_fn.call(event.value(), 20, 0).await;
+                    },
                 }
             }
 
