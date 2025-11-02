@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use dioxus::fullstack::{WebSocketOptions, Websocket};
 use serde::{Deserialize, Serialize};
 
@@ -15,7 +17,7 @@ pub async fn search(query: String, limit: usize, offset: usize) -> Result<Search
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum ClientEvent {
-    GetProgress,
+    GetPostion,
     Play(u64),
     Pause,
     Resume,
@@ -26,7 +28,8 @@ pub enum ClientEvent {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum ServerEvent {
-    Progress(Option<f64>),
+    Position(Duration),
+    Duration(Duration),
     Volume(f64),
     IsPaused(bool),
 }
@@ -40,12 +43,8 @@ pub async fn status_ws(options: WebSocketOptions) -> Result<Websocket<ClientEven
         while let Ok(msg) = socket.recv().await {
             let err = async || -> Result<()> {
                 match msg {
-                    ClientEvent::GetProgress => {
-                        socket
-                            .send(ServerEvent::Progress(
-                                player.progress().inspect_err(|e| error!("{}", e)).ok(),
-                            ))
-                            .await?;
+                    ClientEvent::GetPostion => {
+                        socket.send(ServerEvent::Position(player.position())).await?;
                         Ok(())
                     }
                     ClientEvent::Play(track_id) => {
@@ -84,31 +83,20 @@ pub async fn status_ws(options: WebSocketOptions) -> Result<Websocket<ClientEven
 
                         player.play(data).await?;
                         socket.send(ServerEvent::IsPaused(false)).await?;
-                        socket
-                            .send(ServerEvent::Progress(
-                                player.progress().inspect_err(|e| error!("{}", e)).ok(),
-                            ))
-                            .await?;
+                        socket.send(ServerEvent::Duration(player.duration())).await?;
+                        socket.send(ServerEvent::Position(player.position())).await?;
                         Ok(())
                     }
                     ClientEvent::Pause => {
                         player.pause();
                         socket.send(ServerEvent::IsPaused(true)).await?;
-                        socket
-                            .send(ServerEvent::Progress(
-                                player.progress().inspect_err(|e| error!("{}", e)).ok(),
-                            ))
-                            .await?;
+                        socket.send(ServerEvent::Position(player.position())).await?;
                         Ok(())
                     }
                     ClientEvent::Resume => {
                         player.resume();
                         socket.send(ServerEvent::IsPaused(false)).await?;
-                        socket
-                            .send(ServerEvent::Progress(
-                                player.progress().inspect_err(|e| error!("{}", e)).ok(),
-                            ))
-                            .await?;
+                        socket.send(ServerEvent::Position(player.position())).await?;
                         Ok(())
                     }
                     ClientEvent::SetVolume(value) => {

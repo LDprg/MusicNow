@@ -1,4 +1,4 @@
-use std::sync::{Arc, LazyLock, Mutex};
+use std::{sync::{Arc, LazyLock, Mutex}, time::Duration};
 
 use crate::prelude::*;
 
@@ -108,13 +108,22 @@ impl AudioPlayer {
         self.sink.is_paused()
     }
 
-    pub fn progress(&self) -> Result<f64> {
+    pub fn position(&self) -> Duration {
+        let inner = self.inner.lock().unwrap();
+        if inner.playlist.is_some() {
+            self.sink.postion()
+        } else {
+            Duration::ZERO
+        }
+    }
+
+    pub fn duration(&self) -> Duration {
         let inner = self.inner.lock().unwrap();
         if let Some(playlist) = &inner.playlist {
             let duration: f32 = playlist.segments.iter().map(|i| i.duration).sum();
-            Ok(100.0 * self.sink.postion().as_secs() as f64 / duration as f64)
+            Duration::from_secs_f32(duration)
         } else {
-            Err(anyhow!("No Song playing"))
+            Duration::ZERO
         }
     }
 

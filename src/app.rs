@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use crate::prelude::*;
 use dioxus::{
     fullstack::{WebSocketOptions, use_websocket},
@@ -89,8 +91,9 @@ fn Home() -> Element {
         _ = socket.send(ClientEvent::GetVolume).await;
         _ = socket.send(ClientEvent::GetPaused).await;
         loop {
-            _ = socket.send(ClientEvent::GetProgress).await;
-            TimeoutFuture::new(1_000).await;
+            // Sync every 10 seconds, just to prevent drift and restore broken states
+            _ = socket.send(ClientEvent::GetPostion).await;
+            TimeoutFuture::new(10_000).await;
         }
     });
 
@@ -100,15 +103,20 @@ fn Home() -> Element {
         }
     });
 
-    let mut progress = use_signal(|| Some(0 as f64));
+    let mut position = use_signal(|| Duration::ZERO);
+
+    let mut duration = use_signal(|| Duration::ZERO);
     let mut is_paused = use_signal(|| true);
     let mut volume = use_signal(|| 50.0);
 
     use_future(move || async move {
         while let Ok(msg) = socket.recv().await {
             match msg {
-                ServerEvent::Progress(value) => {
-                    *progress.write() = value;
+                ServerEvent::Position(value) => {
+                    *position.write() = value;
+                }
+                ServerEvent::Duration(value) => {
+                    *duration.write() = value;
                 }
                 ServerEvent::Volume(value) => {
                     *volume.write() = value.round();
@@ -120,16 +128,15 @@ fn Home() -> Element {
         }
     });
 
-    // use_future(move || async move {
-    //     loop {
-    //         if !is_paused()
-    //             && let Some(value) = progress()
-    //         {
-    //             *progress.write() = Some(value + 0.1);
-    //         }
-    //         TimeoutFuture::new(100).await;
-    //     }
-    // });
+    use_future(move || async move {
+        loop {
+            TimeoutFuture::new(10).await;
+            if !is_paused()
+            {
+                *position.write() = position() + Duration::from_millis(10);
+            }
+        }
+    });
 
     let mut search_fn = use_action(search);
     let search_res = use_memo(move || {
@@ -159,8 +166,8 @@ fn Home() -> Element {
             div { class: "m-[8]",
                 progress {
                     class: "progress w-full",
-                    value: progress().unwrap_or(0 as f64),
-                    max: 100,
+                    value: position().as_millis(),
+                    max: duration().as_millis(),
                 }
 
                 div { class: "flex justify-items-center items-center w-full",
