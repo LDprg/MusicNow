@@ -111,11 +111,19 @@ impl AudioPlayer {
     pub fn progress(&self) -> Result<f64> {
         let inner = self.inner.lock().unwrap();
         if let Some(playlist) = &inner.playlist {
-            let duration : f32 = playlist.segments.iter().map(|i| i.duration).sum();
+            let duration: f32 = playlist.segments.iter().map(|i| i.duration).sum();
             Ok(100.0 * self.sink.postion().as_secs() as f64 / duration as f64)
         } else {
             Err(anyhow!("No Song playing"))
         }
+    }
+
+    pub fn set_volume(&self, value: f64) {
+        self.sink.set_volume(value / 500.0);
+    }
+
+    pub fn get_volume(&self) -> f64 {
+        self.sink.get_volume() * 500.0
     }
 }
 

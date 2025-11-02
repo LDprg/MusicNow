@@ -1,8 +1,6 @@
-use std::time::Duration;
-
 use crate::prelude::*;
 use dioxus::{
-    fullstack::{UseWebsocket, WebSocketOptions, use_websocket},
+    fullstack::{WebSocketOptions, use_websocket},
     prelude::*,
 };
 use dioxus_free_icons::{Icon, icons::hi_solid_icons::*};
@@ -47,8 +45,6 @@ fn SongItems(search: ReadSignal<SearchApi>) -> Element {
                         async move {
                             let mut player = use_context::<PlayerContext>();
 
-                            play(track.id).await?;
-
                             *player.current_track.write() = Some(*track);
                             Ok(())
                         }
@@ -90,25 +86,50 @@ fn Home() -> Element {
     });
 
     use_future(move || async move {
+        _ = socket.send(ClientEvent::GetVolume).await;
+        _ = socket.send(ClientEvent::GetPaused).await;
         loop {
+            _ = socket.send(ClientEvent::GetProgress).await;
             TimeoutFuture::new(1_000).await;
-            _ = socket.send(ClientEvent::UpdateStatus).await;
+        }
+    });
+
+    use_resource(move || async move {
+        if let Some(track) = &*player.current_track.read() {
+            _ = socket.send(ClientEvent::Play(track.id)).await;
         }
     });
 
     let mut progress = use_signal(|| Some(0 as f64));
     let mut is_paused = use_signal(|| true);
+    let mut volume = use_signal(|| 50.0);
 
     use_future(move || async move {
         while let Ok(msg) = socket.recv().await {
             match msg {
-                ServerEvent::Status(status)=> {
-                    *progress.write() = status.progress;
-                    *is_paused.write() = status.is_paused;
+                ServerEvent::Progress(value) => {
+                    *progress.write() = value;
+                }
+                ServerEvent::Volume(value) => {
+                    *volume.write() = value.round();
+                }
+                ServerEvent::IsPaused(value) => {
+                    *is_paused.write() = value;
                 }
             };
         }
     });
+
+    // use_future(move || async move {
+    //     loop {
+    //         if !is_paused()
+    //             && let Some(value) = progress()
+    //         {
+    //             *progress.write() = Some(value + 0.1);
+    //         }
+    //         TimeoutFuture::new(100).await;
+    //     }
+    // });
 
     let mut search_fn = use_action(search);
     let search_res = use_memo(move || {
@@ -174,6 +195,14 @@ fn Home() -> Element {
                             class: "btn btn-square",
                             width: "30px",
                             height: "30px",
+                            onclick: move |_| async move {
+                                if is_paused() {
+                                    socket.send(ClientEvent::Resume).await?;
+                                } else {
+                                    socket.send(ClientEvent::Pause).await?;
+                                }
+                                Ok(())
+                            },
                             if is_paused() {
                                 Icon { width: 30, height: 30, icon: HiPause }
                             } else {
@@ -196,7 +225,11 @@ fn Home() -> Element {
                         r#type: "range",
                         min: 0,
                         max: 100,
-                        value: 50,
+                        value: volume(),
+                        oninput: move |e| async move {
+                            socket.send(ClientEvent::SetVolume(e.value().parse::<f64>()?)).await?;
+                            Ok(())
+                        },
                     }
                 }
             }

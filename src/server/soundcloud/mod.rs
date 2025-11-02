@@ -1,14 +1,12 @@
 use crate::prelude::*;
 
+use bytes::Bytes;
 use format_serde_error::SerdeError;
 use regex::Regex;
 use reqwest::Url;
 use scraper::{Html, Selector};
 use serde_json::Value;
-use std::{
-    sync::{Arc, LazyLock, RwLock},
-};
-use bytes::Bytes;
+use std::sync::{Arc, LazyLock, RwLock};
 
 #[derive(Clone, Debug)]
 pub struct SoundCloudApi {
@@ -152,11 +150,7 @@ impl SoundCloudApi {
             .to_string();
 
         info!("Data from: {}", url);
-        let resp = self
-            .client
-            .get(url)
-            .send()
-            .await?;
+        let resp = self.client.get(url).send().await?;
 
         Ok(resp.bytes().await?)
     }

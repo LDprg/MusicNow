@@ -43,6 +43,14 @@ impl AudioSink {
         }
     }
 
+    pub fn set_volume(&self, value: f64) {
+        self.sink.set_volume(value as f32);
+    }
+
+    pub fn get_volume(&self) -> f64 {
+        self.sink.volume() as f64
+    }
+
     pub fn sleep(&self) {
         self.sink.sleep_until_end();
     }
