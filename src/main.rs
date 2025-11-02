@@ -7,6 +7,7 @@ mod app;
 mod components;
 mod prelude;
 mod server;
+mod timer;
 
 use crate::app::*;
 

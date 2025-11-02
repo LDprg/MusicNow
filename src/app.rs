@@ -1,13 +1,12 @@
 use std::time::Duration;
 
 use crate::prelude::*;
+use crate::timer::*;
 use dioxus::{
-    core::Task,
     fullstack::{WebSocketOptions, use_websocket},
     prelude::*,
 };
 use dioxus_free_icons::{Icon, icons::hi_solid_icons::*};
-use gloo_timers::future::TimeoutFuture;
 
 #[derive(Debug, Clone, Routable, PartialEq)]
 #[rustfmt::skip]
@@ -100,7 +99,7 @@ fn Home() -> Element {
         loop {
             // Sync every 10 seconds, just to prevent drift and restore broken states
             _ = socket.send(ClientEvent::GetPostion).await;
-            TimeoutFuture::new(10_000).await;
+            sleep(Duration::from_secs(10)).await;
         }
     });
 
@@ -108,10 +107,6 @@ fn Home() -> Element {
         if let Some(track) = &*player.current_track.read() {
             _ = socket.send(ClientEvent::Play(track.id)).await;
         }
-    });
-
-    use_resource(move || async move {
-        TimeoutFuture::new(500).await; // Prevent million requests
     });
 
     use_future(move || async move {
@@ -135,7 +130,10 @@ fn Home() -> Element {
 
     use_future(move || async move {
         loop {
-            TimeoutFuture::new(10).await;
+            // TODO: use absolute times from the last update instead to minimize skipping of the
+            // progress bar
+            // NOTE: this is basically broken and works almost never as expected
+            sleep(Duration::from_millis(10)).await;
             if !is_paused() {
                 *position.write() = position() + Duration::from_millis(10);
             }
