@@ -111,8 +111,8 @@ impl AudioPlayer {
     pub fn progress(&self) -> Result<f64> {
         let inner = self.inner.lock().unwrap();
         if let Some(playlist) = &inner.playlist {
-            let duration = playlist.target_duration;
-            Ok(100.0 * self.sink.postion().as_millis() as f64 / duration as f64)
+            let duration : f32 = playlist.segments.iter().map(|i| i.duration).sum();
+            Ok(100.0 * self.sink.postion().as_secs() as f64 / duration as f64)
         } else {
             Err(anyhow!("No Song playing"))
         }

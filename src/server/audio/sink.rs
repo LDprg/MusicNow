@@ -1,5 +1,5 @@
-use std::{fmt, time::Duration};
 use std::sync::Arc;
+use std::{fmt, time::Duration};
 
 use rodio::{Decoder, OutputStream, OutputStreamBuilder, Sink};
 
@@ -32,11 +32,15 @@ impl AudioSink {
     }
 
     pub fn is_paused(&self) -> bool {
-        self.sink.is_paused()
+        self.sink.empty() || self.sink.is_paused()
     }
 
     pub fn postion(&self) -> Duration {
-        self.sink.get_pos()
+        if !self.sink.empty() {
+            self.sink.get_pos()
+        } else {
+            Duration::ZERO
+        }
     }
 
     pub fn sleep(&self) {

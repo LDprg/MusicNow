@@ -1,6 +1,12 @@
+use std::time::Duration;
+
 use crate::prelude::*;
-use dioxus::prelude::*;
+use dioxus::{
+    fullstack::{UseWebsocket, WebSocketOptions, use_websocket},
+    prelude::*,
+};
 use dioxus_free_icons::{Icon, icons::hi_solid_icons::*};
+use gloo_timers::future::TimeoutFuture;
 
 #[derive(Debug, Clone, Routable, PartialEq)]
 #[rustfmt::skip]
@@ -77,14 +83,32 @@ fn SongItems(search: ReadSignal<SearchApi>) -> Element {
 
 #[component]
 fn Home() -> Element {
-    let mut player = use_context_provider(|| PlayerContext {
+    let mut socket = use_websocket(|| status_ws(WebSocketOptions::new()));
+
+    let player = use_context_provider(|| PlayerContext {
         current_track: Signal::new(None),
     });
 
-    // let mut progress_fn = use_action(progress);
-    // let progress_res = use_memo(move || {
-    //     progress_fn.value().unwrap_or(use_signal(|| 100.0 as f64))
-    // });
+    use_future(move || async move {
+        loop {
+            TimeoutFuture::new(1_000).await;
+            _ = socket.send(ClientEvent::UpdateStatus).await;
+        }
+    });
+
+    let mut progress = use_signal(|| Some(0 as f64));
+    let mut is_paused = use_signal(|| true);
+
+    use_future(move || async move {
+        while let Ok(msg) = socket.recv().await {
+            match msg {
+                ServerEvent::Status(status)=> {
+                    *progress.write() = status.progress;
+                    *is_paused.write() = status.is_paused;
+                }
+            };
+        }
+    });
 
     let mut search_fn = use_action(search);
     let search_res = use_memo(move || {
@@ -112,7 +136,11 @@ fn Home() -> Element {
             div { class: "overflow-auto", {search_res()} }
 
             div { class: "m-[8]",
-                progress { class: "progress w-full", value: 30, max: 100 }
+                progress {
+                    class: "progress w-full",
+                    value: progress().unwrap_or(0 as f64),
+                    max: 100,
+                }
 
                 div { class: "flex justify-items-center items-center w-full",
                     div { width: "50px", height: "50px",
@@ -146,7 +174,11 @@ fn Home() -> Element {
                             class: "btn btn-square",
                             width: "30px",
                             height: "30px",
-                            Icon { width: 30, height: 30, icon: HiPlay }
+                            if is_paused() {
+                                Icon { width: 30, height: 30, icon: HiPause }
+                            } else {
+                                Icon { width: 30, height: 30, icon: HiPlay }
+                            }
                         }
                         button {
                             class: "btn btn-square",

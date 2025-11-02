@@ -3494,6 +3494,7 @@ dependencies = [
  "dioxus",
  "dioxus-free-icons",
  "format_serde_error",
+ "gloo-timers",
  "m3u8-rs",
  "regex",
  "reqwest",

@@ -1,3 +1,6 @@
+use dioxus::fullstack::{WebSocketOptions, Websocket};
+use serde::{Deserialize, Serialize};
+
 use crate::prelude::*;
 
 #[post("/api/search")]
@@ -67,16 +70,39 @@ pub async fn resume() -> Result<()> {
     Ok(())
 }
 
-#[get("/api/player/is_paused")]
-pub async fn is_player() -> Result<bool> {
-    let player = AudioPlayer::default();
-
-    Ok(player.is_paused())
+// Events flowing *from* the client to the server
+#[derive(Serialize, Deserialize, Debug)]
+pub enum ClientEvent {
+    UpdateStatus,
 }
 
-#[get("/api/player/progress")]
-pub async fn progress() -> Result<f64> {
-    let player = AudioPlayer::default();
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Status {
+    pub is_paused: bool,
+    pub progress: Option<f64>,
+}
 
-    player.progress()
+// Events flowing *to* the client from the server
+#[derive(Serialize, Deserialize, Debug)]
+pub enum ServerEvent {
+    Status(Status),
+}
+
+#[get("/api/status")]
+pub async fn status_ws(options: WebSocketOptions) -> Result<Websocket<ClientEvent, ServerEvent>> {
+    Ok(options.on_upgrade(move |mut socket| async move {
+        let player = AudioPlayer::default();
+
+        // Loop and echo back uppercase messages
+        while let Ok(msg) = socket.recv().await {
+            match msg {
+                ClientEvent::UpdateStatus => {
+                    _ = socket.send(ServerEvent::Status(Status{
+                        is_paused: player.is_paused(),
+                        progress: player.progress().inspect_err(|e| error!("{}", e)).ok(),
+                    })).await;
+                }
+            };
+        }
+    }))
 }

@@ -27,25 +27,28 @@ reqwest = { version = "0.12", default-features = false, features = [
 scraper = { version = "0.24", optional = true }
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", optional = true }
-tokio = { version = "1.48", features = ["full"], optional = true }
+tokio = { version = "1.48", default-features = false }
 rodio = { git = "https://github.com/RustAudio/rodio", branch = "feat/comprehensive-seeking-and-bit-depth", optional = true }
 format_serde_error = "0.3"
 bytes = "1.10.1"
+gloo-timers = { version = "0.3.0", features = ["futures"] }
 
 [features]
 default = []
-web = ["dioxus/web"] # Development only
-desktop = ["dioxus/desktop"]
-mobile = ["dioxus/mobile"]
+web = ["dioxus/web", "frontend"] # Development only
+desktop = ["dioxus/desktop", "frontend"]
+mobile = ["dioxus/mobile", "frontend"]
 server = [
     "dioxus/server",
-    "dep:tokio",
+    "tokio/full",
     "dep:rodio",
     "dep:scraper",
     "dep:serde_json",
     "dep:m3u8-rs",
     "dep:regex",
 ]
+
+frontend = ["tokio/rt"]
 
 [profile]
 
