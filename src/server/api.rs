@@ -41,7 +41,7 @@ pub async fn status_ws(options: WebSocketOptions) -> Result<Websocket<ClientEven
 
         // Loop and echo back uppercase messages
         while let Ok(msg) = socket.recv().await {
-            let err = async || -> Result<()> {
+            let err : Result<()>  = async {
                 match msg {
                     ClientEvent::GetPostion => {
                         socket
@@ -125,8 +125,7 @@ pub async fn status_ws(options: WebSocketOptions) -> Result<Websocket<ClientEven
                         Ok(())
                     }
                 }
-            }()
-            .await;
+            }.await;
 
             if let Err(err) = err {
                 error!("{}", err);

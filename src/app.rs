@@ -85,7 +85,10 @@ fn Home() -> Element {
         current_track: Signal::new(None),
     });
 
+    let mut position_sync = use_signal(|| Duration::ZERO);
+    let mut position_inst = use_signal(Instant::now);
     let mut position = use_signal(|| Duration::ZERO);
+
     let mut duration = use_signal(|| Duration::ZERO);
     let mut is_paused = use_signal(|| true);
     let mut volume = use_signal(|| 50.0);
@@ -113,16 +116,17 @@ fn Home() -> Element {
         while let Ok(msg) = socket.recv().await {
             match msg {
                 ServerEvent::Position(value) => {
-                    *position.write() = value;
+                    position_sync.set(value);
+                    position_inst.set(Instant::now());
                 }
                 ServerEvent::Duration(value) => {
-                    *duration.write() = value;
+                    duration.set(value);
                 }
                 ServerEvent::Volume(value) => {
-                    *volume.write() = value.round();
+                    volume.set(value.round());
                 }
                 ServerEvent::IsPaused(value) => {
-                    *is_paused.write() = value;
+                    is_paused.set(value);
                 }
             };
         }
@@ -130,12 +134,11 @@ fn Home() -> Element {
 
     use_future(move || async move {
         loop {
-            // TODO: use absolute times from the last update instead to minimize skipping of the
-            // progress bar
-            // NOTE: this is basically broken and works almost never as expected
             sleep(Duration::from_millis(10)).await;
             if !is_paused() {
-                *position.write() = position() + Duration::from_millis(10);
+                *position.write() = position_sync() + position_inst.read().elapsed();
+            } else {
+                *position.write() = position_sync();
             }
         }
     });

@@ -8,7 +8,6 @@ use crate::prelude::*;
 use bytes::Bytes;
 use dioxus::logger::tracing::info;
 use m3u8_rs::MediaPlaylist;
-use reqwest::Url;
 use tokio::task::{JoinHandle, spawn_blocking};
 
 mod sink;
@@ -17,7 +16,7 @@ mod stream;
 use sink::*;
 use stream::*;
 
-static SINGLETON_PLAYER: LazyLock<AudioPlayer> = LazyLock::new(|| AudioPlayer::new());
+static SINGLETON_PLAYER: LazyLock<AudioPlayer> = LazyLock::new(AudioPlayer::new);
 
 #[derive(Clone, Debug)]
 pub struct AudioPlayer {

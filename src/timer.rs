@@ -7,3 +7,25 @@ pub async fn sleep(dur: Duration) {
     #[cfg(not(feature = "web"))]
     tokio::time::sleep(dur).await;
 }
+
+pub struct Instant {
+    #[cfg(not(feature = "web"))]
+    value: tokio::time::Instant,
+    #[cfg(feature = "web")]
+    value: web_time::Instant,
+}
+
+impl Instant {
+    pub fn now() -> Self {
+        Self {
+            #[cfg(not(feature = "web"))]
+            value: tokio::time::Instant::now(),
+            #[cfg(feature = "web")]
+            value: web_time::Instant::now(),
+        }
+    }
+
+    pub fn elapsed(&self) -> Duration {
+        self.value.elapsed()
+    }
+}
