@@ -3,7 +3,6 @@ use std::time::Duration;
 use crate::prelude::*;
 use crate::timer::*;
 use dioxus::{
-    fullstack::{WebSocketOptions, use_websocket},
     prelude::*,
 };
 use dioxus_free_icons::{Icon, icons::hi_solid_icons::*};
@@ -93,45 +92,6 @@ fn Home() -> Element {
     let mut is_paused = use_signal(|| true);
     let mut volume = use_signal(|| 50.0);
 
-    let mut socket = use_websocket(|| status_ws(WebSocketOptions::new()));
-    let mut search_fn = use_action(search);
-
-    use_future(move || async move {
-        _ = socket.send(ClientEvent::GetVolume).await;
-        _ = socket.send(ClientEvent::GetPaused).await;
-        loop {
-            // Sync every 10 seconds, just to prevent drift and restore broken states
-            _ = socket.send(ClientEvent::GetPostion).await;
-            sleep(Duration::from_secs(10)).await;
-        }
-    });
-
-    use_resource(move || async move {
-        if let Some(track) = &*player.current_track.read() {
-            _ = socket.send(ClientEvent::Play(track.id)).await;
-        }
-    });
-
-    use_future(move || async move {
-        while let Ok(msg) = socket.recv().await {
-            match msg {
-                ServerEvent::Position(value) => {
-                    position_sync.set(value);
-                    position_inst.set(Instant::now());
-                }
-                ServerEvent::Duration(value) => {
-                    duration.set(value);
-                }
-                ServerEvent::Volume(value) => {
-                    volume.set(value.round());
-                }
-                ServerEvent::IsPaused(value) => {
-                    is_paused.set(value);
-                }
-            };
-        }
-    });
-
     use_future(move || async move {
         loop {
             sleep(Duration::from_millis(10)).await;
@@ -144,12 +104,12 @@ fn Home() -> Element {
     });
 
     let search_res = use_memo(move || {
-        search_fn.value().map(|v| match v {
-            Ok(search) => rsx!(
-                SongItems { search }
-            ),
-            Err(err) => rsx!( "{err}" ),
-        })
+        // search_fn.value().map(|v| match v {
+        //     Ok(search) => rsx!(
+        //         SongItems { search }
+        //     ),
+        //     Err(err) => rsx!( "{err}" ),
+        // })
     });
 
     rsx!(
@@ -161,10 +121,7 @@ fn Home() -> Element {
                     r#type: "search",
                     placeholder: "Search",
 
-                    oninput: move |event| async move {
-                        search_fn.cancel();
-                        search_fn.call(event.value(), 20, 0).await;
-                    },
+                    oninput: move |event| async move {},
                 }
             }
 
@@ -209,14 +166,7 @@ fn Home() -> Element {
                             class: "btn btn-square",
                             width: "30px",
                             height: "30px",
-                            onclick: move |_| async move {
-                                if is_paused() {
-                                    socket.send(ClientEvent::Resume).await?;
-                                } else {
-                                    socket.send(ClientEvent::Pause).await?;
-                                }
-                                Ok(())
-                            },
+                            onclick: move |_| async move {},
                             if is_paused() {
                                 Icon { width: 30, height: 30, icon: HiPause }
                             } else {
@@ -240,10 +190,7 @@ fn Home() -> Element {
                         min: 0,
                         max: 100,
                         value: volume(),
-                        oninput: move |e| async move {
-                            socket.send(ClientEvent::SetVolume(e.value().parse::<f64>()?)).await?;
-                            Ok(())
-                        },
+                        oninput: move |e| async move {},
                     }
                 }
             }

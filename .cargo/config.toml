@@ -1,34 +1,8 @@
 # Desktop
 [target.x86_64-unknown-linux-gnu]
 linker = "clang"
-rustflags = [
-    "-C",
-    "link-arg=-fuse-ld=mold",
-    "-Zshare-generics=y",
-    "--cfg",
-    "reqwest_unstable",
-]
+rustflags = ["-C", "link-arg=-fuse-ld=mold", "-Zshare-generics=y"]
 
 # Wasm
 [target.wasm32-unknown-unknown]
-rustflags = ["-Zshare-generics=y", "--cfg", "reqwest_unstable"]
-
-# IOS (untested)
-[target.aarch64-apple-ios]
-rustflags = ["-Zshare-generics=y", "--cfg", "reqwest_unstable"]
-
-[target.aarch64-apple-ios-sim]
-rustflags = ["-Zshare-generics=y", "--cfg", "reqwest_unstable"]
-
-# Android
-[target.x86_64-linux-android]
-rustflags = ["-Zshare-generics=y", "--cfg", "reqwest_unstable"]
-
-[target.aarch64-linux-android]
-rustflags = ["-Zshare-generics=y", "--cfg", "reqwest_unstable"]
-
-[target.armv7-linux-androideabi]
-rustflags = ["-Zshare-generics=y", "--cfg", "reqwest_unstable"]
-
-[target.i686-linux-android]
-rustflags = ["-Zshare-generics=y", "--cfg", "reqwest_unstable"]
+rustflags = ["-Zshare-generics=y"]

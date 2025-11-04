@@ -22,7 +22,7 @@ struct SoundCloudApiInner {
 const SC_URL: &str = "https://soundcloud.com";
 const SC_API_URL: &str = "https://api-v2.soundcloud.com";
 
-static SINGLETON_API: LazyLock<SoundCloudApi> = LazyLock::new(SoundCloudApi::new);
+static SINGLETON_API: LazyLock<SoundCloudApi> = LazyLock::new(|| SoundCloudApi::new());
 
 impl SoundCloudApi {
     fn new() -> Self {
