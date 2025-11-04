@@ -10,7 +10,7 @@ MusicNow features:
 
 - Fullstack Rust from web-request to ui to audio playback and decoding
 - Fast and responsive due to dioxus
-- Crossplatform (Linux, Windows, Mac, IOs, Android)
+- Crossplatform (Linux, Windows, Android)
 - Playback without login
 - OpenSource so no spying or telemetry
 
@@ -23,6 +23,10 @@ Be aware that the dioxus cli version needs to match the dioxus one (currently 0.
 
 MusicNow uses SoundCloud APIs for everything currently, however there might be additional providers in the future.
 This project will switch to a static compiled plugin system (similar to caddy) at some later point of time. This will allow anyone to create their own unoffical backend.
+
+## What about IOS?
+
+IOS can be in theory be supported. However due to the lack of knowledge by the maintainers of this projects the storage paths are missing/broken. Feel free to contribute to fix this.
 
 ## Could I use the web platform?
 

@@ -24,7 +24,7 @@ rustflags = ["-Zshare-generics=y", "--cfg", "reqwest_unstable"]
 [target.x86_64-linux-android]
 rustflags = ["-Zshare-generics=y", "--cfg", "reqwest_unstable"]
 
-[target.arch64-linux-android]
+[target.aarch64-linux-android]
 rustflags = ["-Zshare-generics=y", "--cfg", "reqwest_unstable"]
 
 [target.armv7-linux-androideabi]
