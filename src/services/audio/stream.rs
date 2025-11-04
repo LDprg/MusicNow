@@ -36,14 +36,14 @@ impl AudioStreamer {
         }
     }
 
-    pub fn append(&self, new_data: &[u8]) {
+    pub async fn append(&self, new_data: &[u8]) {
         let tx = self.tx.lock().unwrap();
         if let Some(tx) = tx.as_ref() {
             tx.send(new_data.to_vec()).unwrap();
         }
     }
 
-    pub fn finish(&self) {
+    pub async fn finish(&self) {
         self.tx.lock().unwrap().take();
     }
 }

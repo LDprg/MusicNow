@@ -14,13 +14,12 @@ pub struct AudioSink {
 
 #[allow(dead_code)]
 impl AudioSink {
-    pub fn play(&self, stream: AudioStreamer) -> Result<()> {
-        let source = Decoder::try_from(stream)?;
+    pub fn play(&self, stream: AudioStreamer) {
+        let source = Decoder::try_from(stream).expect("Decoding audio failed!");
         self.sink.clear();
         self.sink.play();
 
         self.sink.append(source);
-        Ok(())
     }
 
     pub fn pause(&self) {

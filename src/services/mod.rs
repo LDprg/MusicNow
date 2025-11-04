@@ -24,6 +24,7 @@ async fn audio() {
 }
 
 pub fn spawn() {
+    // Web doesn't support multi threading
     #[cfg(not(feature = "web"))]
     let runtime = tokio::runtime::Runtime::new().unwrap();
     #[cfg(feature = "web")]
