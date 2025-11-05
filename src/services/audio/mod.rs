@@ -91,6 +91,11 @@ impl AudioPlayer {
 
         info!("Starting playback");
 
+        let duration: f32 = playlist.segments.iter().map(|i| i.duration).sum();
+        self.duration_tx
+            .send(Duration::from_secs_f32(duration))
+            .unwrap();
+
         let segments = playlist.segments.clone();
         let tx = self.tx.clone();
         dioxus::core::spawn(async move {
@@ -99,6 +104,9 @@ impl AudioPlayer {
 
                 info!("Starting audio");
                 tx.send(AudioPlayerCommands::Play(stream.clone())).unwrap();
+                tx.send(AudioPlayerCommands::Resume).unwrap();
+                tx.send(AudioPlayerCommands::Position).unwrap();
+                tx.send(AudioPlayerCommands::IsPlaying).unwrap();
 
                 info!("Starting stream");
 
@@ -128,12 +136,6 @@ impl AudioPlayer {
             }
         });
 
-        let duration: f32 = playlist.segments.iter().map(|i| i.duration).sum();
-        self.duration_tx
-            .send(Duration::from_secs_f32(duration))
-            .unwrap();
-
-        self.resume();
         Ok(())
     }
 
