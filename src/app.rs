@@ -88,12 +88,12 @@ fn Home() -> Element {
         current_track: Signal::new(None),
     });
 
-    let position_sync = use_signal(|| Duration::ZERO);
-    let position_inst = use_signal(Instant::now);
+    let mut position_sync = use_signal(|| Duration::ZERO);
+    let mut position_inst = use_signal(Instant::now);
     let mut position = use_signal(|| Duration::ZERO);
 
-    let duration = use_signal(|| Duration::ZERO);
-    let volume = use_signal(|| 50.0);
+    let mut duration = use_signal(|| Duration::ZERO);
+    let mut volume = use_signal(|| 50.0);
     let mut is_playing = use_signal(|| false);
 
     use_future(move || async move {
@@ -110,11 +110,42 @@ fn Home() -> Element {
     use_future(move || async move {
         let audio_player = AudioPlayer::default();
 
+        loop {
+            sleep(Duration::from_secs(10)).await;
+            audio_player.update_postion();
+        }
+    });
+
+    use_future(move || async move {
+        let audio_player = AudioPlayer::default();
+
         dioxus::core::spawn(async move {
-            let mut is_playing_recv = audio_player.is_playing;
-             while let Ok(_) = is_playing_recv.changed().await {
-                 is_playing.set(*is_playing_recv.borrow());
-             }
+            let mut recv = audio_player.is_playing;
+            while let Ok(_) = recv.changed().await {
+                is_playing.set(*recv.borrow());
+            }
+        });
+
+        dioxus::core::spawn(async move {
+            let mut recv = audio_player.position;
+            while let Ok(_) = recv.changed().await {
+                position_sync.set(*recv.borrow());
+                position_inst.set(Instant::now());
+            }
+        });
+
+        dioxus::core::spawn(async move {
+            let mut recv = audio_player.duration;
+            while let Ok(_) = recv.changed().await {
+                duration.set(*recv.borrow());
+            }
+        });
+
+        dioxus::core::spawn(async move {
+            let mut recv = audio_player.volume;
+            while let Ok(_) = recv.changed().await {
+                volume.set(*recv.borrow());
+            }
         });
     });
 
@@ -215,6 +246,10 @@ fn Home() -> Element {
                         min: 0,
                         max: 100,
                         value: volume(),
+                        oninput: move |e| {
+                            let audio_player = AudioPlayer::default();
+                            audio_player.set_volume(e.value().parse::<f64>().unwrap());
+                        },
                     }
                 }
             }

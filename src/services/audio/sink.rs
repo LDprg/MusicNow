@@ -34,7 +34,7 @@ impl AudioSink {
         self.sink.empty() || self.sink.is_paused()
     }
 
-    pub fn postion(&self) -> Duration {
+    pub fn position(&self) -> Duration {
         if !self.sink.empty() {
             self.sink.get_pos()
         } else {

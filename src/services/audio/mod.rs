@@ -24,6 +24,10 @@ static SINGLETON_PLAYER: LazyLock<AudioPlayer> = LazyLock::new(AudioPlayer::new)
 pub struct AudioPlayer {
     tx: std::sync::mpsc::Sender<AudioPlayerCommands>,
     pub is_playing: tokio::sync::watch::Receiver<bool>,
+    pub position: tokio::sync::watch::Receiver<Duration>,
+    pub duration: tokio::sync::watch::Receiver<Duration>,
+    duration_tx: tokio::sync::watch::Sender<Duration>,
+    pub volume: tokio::sync::watch::Receiver<f64>,
 }
 
 #[derive(Debug)]
@@ -32,18 +36,28 @@ enum AudioPlayerCommands {
     Pause,
     Resume,
     IsPlaying,
+    Position,
+    SetVolume(f64),
+    Volume,
 }
 
 impl AudioPlayer {
     fn new() -> Self {
         let (sync_tx, sync_rx) = std::sync::mpsc::channel::<AudioPlayerCommands>();
         let is_playing = tokio::sync::watch::channel::<bool>(false);
+        let position = tokio::sync::watch::channel::<Duration>(Duration::ZERO);
+        let duration = tokio::sync::watch::channel::<Duration>(Duration::ZERO);
+        let volume = tokio::sync::watch::channel::<f64>(50.0);
 
-        thread::spawn(move || audio_task(sync_rx, is_playing.0));
+        thread::spawn(move || audio_task(sync_rx, is_playing.0, position.0, volume.0));
 
         Self {
             tx: sync_tx,
             is_playing: is_playing.1,
+            position: position.1,
+            duration: duration.1,
+            duration_tx: duration.0,
+            volume: volume.1,
         }
     }
 
@@ -122,46 +136,35 @@ impl AudioPlayer {
             }
         });
 
-        self.tx.send(AudioPlayerCommands::IsPlaying).unwrap();
+        let duration: f32 = playlist.segments.iter().map(|i| i.duration).sum();
+        self.duration_tx
+            .send(Duration::from_secs_f32(duration))
+            .unwrap();
+
+        self.resume();
         Ok(())
     }
 
     pub fn pause(&self) {
         self.tx.send(AudioPlayerCommands::Pause).unwrap();
+        self.tx.send(AudioPlayerCommands::Position).unwrap();
         self.tx.send(AudioPlayerCommands::IsPlaying).unwrap();
     }
 
     pub fn resume(&self) {
         self.tx.send(AudioPlayerCommands::Resume).unwrap();
+        self.tx.send(AudioPlayerCommands::Position).unwrap();
         self.tx.send(AudioPlayerCommands::IsPlaying).unwrap();
     }
 
-    // pub fn position(&self) -> Duration {
-    //     let inner = self.inner.lock().unwrap();
-    //     if inner.playlist.is_some() {
-    //         self.sink.postion()
-    //     } else {
-    //         Duration::ZERO
-    //     }
-    // }
-    //
-    // pub fn duration(&self) -> Duration {
-    //     let inner = self.inner.lock().unwrap();
-    //     if let Some(playlist) = &inner.playlist {
-    //         let duration: f32 = playlist.segments.iter().map(|i| i.duration).sum();
-    //         Duration::from_secs_f32(duration)
-    //     } else {
-    //         Duration::ZERO
-    //     }
-    // }
+    pub fn update_postion(&self) {
+        self.tx.send(AudioPlayerCommands::Position).unwrap();
+    }
 
-    // pub fn set_volume(&self, value: f64) {
-    //     self.sink.set_volume(value / 500.0);
-    // }
-    //
-    // pub fn get_volume(&self) -> f64 {
-    //     self.sink.get_volume() * 500.0
-    // }
+    pub fn set_volume(&self, value: f64) {
+        self.tx.send(AudioPlayerCommands::SetVolume(value)).unwrap();
+        self.tx.send(AudioPlayerCommands::Volume).unwrap();
+    }
 }
 
 impl Default for AudioPlayer {
@@ -174,6 +177,8 @@ impl Default for AudioPlayer {
 fn audio_task(
     rx: std::sync::mpsc::Receiver<AudioPlayerCommands>,
     is_playing: tokio::sync::watch::Sender<bool>,
+    position: tokio::sync::watch::Sender<Duration>,
+    volume: tokio::sync::watch::Sender<f64>,
 ) {
     let sink = AudioSink::default();
 
@@ -183,6 +188,9 @@ fn audio_task(
             AudioPlayerCommands::Pause => sink.pause(),
             AudioPlayerCommands::Resume => sink.resume(),
             AudioPlayerCommands::IsPlaying => is_playing.send(!sink.is_paused()).unwrap(),
+            AudioPlayerCommands::Position => position.send(sink.position()).unwrap(),
+            AudioPlayerCommands::SetVolume(value) => sink.set_volume(value / 500.0),
+            AudioPlayerCommands::Volume => volume.send(sink.get_volume() * 500.0).unwrap(),
         };
     }
 }
