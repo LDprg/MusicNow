@@ -1,16 +1,8 @@
-use std::{
-    sync::{Arc, LazyLock, Mutex},
-    thread,
-    time::Duration,
-};
+use std::{sync::LazyLock, thread, time::Duration};
 
 use crate::prelude::*;
 
-use bytes::Bytes;
-use dioxus::{html::u::is, logger::tracing::info};
-use m3u8_rs::MediaPlaylist;
-use serde::de;
-use tokio::task::{JoinHandle, spawn_blocking};
+use dioxus::logger::tracing::info;
 
 mod sink;
 mod stream;

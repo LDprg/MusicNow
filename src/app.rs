@@ -1,8 +1,6 @@
 use std::time::Duration;
 
 use crate::prelude::*;
-use crate::services;
-use dioxus::html::u::is;
 use dioxus::prelude::*;
 use dioxus_free_icons::{Icon, icons::hi_solid_icons::*};
 use tokio::time::Instant;
@@ -121,14 +119,14 @@ fn Home() -> Element {
 
         dioxus::core::spawn(async move {
             let mut recv = audio_player.is_playing;
-            while let Ok(_) = recv.changed().await {
+            while recv.changed().await.is_ok() {
                 is_playing.set(*recv.borrow());
             }
         });
 
         dioxus::core::spawn(async move {
             let mut recv = audio_player.position;
-            while let Ok(_) = recv.changed().await {
+            while recv.changed().await.is_ok() {
                 position_sync.set(*recv.borrow());
                 position_inst.set(Instant::now());
             }
@@ -136,14 +134,14 @@ fn Home() -> Element {
 
         dioxus::core::spawn(async move {
             let mut recv = audio_player.duration;
-            while let Ok(_) = recv.changed().await {
+            while recv.changed().await.is_ok() {
                 duration.set(*recv.borrow());
             }
         });
 
         dioxus::core::spawn(async move {
             let mut recv = audio_player.volume;
-            while let Ok(_) = recv.changed().await {
+            while recv.changed().await.is_ok() {
                 volume.set(*recv.borrow());
             }
         });
