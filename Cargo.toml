@@ -36,6 +36,9 @@ bytes = "1.10"
 directories = "6.0"
 jni = { version = "0.21", optional = true }
 ndk-context = { version = "0.1", optional = true }
+strum = { version = "0.27.2", features = ["derive"] }
+chrono = { version = "0.4.42", features = ["serde"] }
+uuid = { version = "1.18.1", features = ["serde"] }
 
 [features]
 default = []
