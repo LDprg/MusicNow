@@ -1,19 +1,16 @@
-use std::thread;
-
 use crate::prelude::*;
 
 mod app;
 mod components;
 mod prelude;
 mod services;
-mod timer;
 
 use crate::app::*;
 
 fn main() {
     dioxus::logger::init(Level::INFO).expect("failed to init logger");
 
-    thread::spawn(services::spawn);
+    services::spawn();
 
     dioxus::LaunchBuilder::new()
         .with_cfg(desktop!(dioxus::desktop::Config::new().with_menu(None)))

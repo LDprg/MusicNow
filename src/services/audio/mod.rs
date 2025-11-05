@@ -7,7 +7,7 @@ use std::{
 use crate::prelude::*;
 
 use bytes::Bytes;
-use dioxus::logger::tracing::info;
+use dioxus::{html::u::is, logger::tracing::info};
 use m3u8_rs::MediaPlaylist;
 use serde::de;
 use tokio::task::{JoinHandle, spawn_blocking};
@@ -20,10 +20,10 @@ use stream::*;
 
 static SINGLETON_PLAYER: LazyLock<AudioPlayer> = LazyLock::new(AudioPlayer::new);
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct AudioPlayer {
     tx: std::sync::mpsc::Sender<AudioPlayerCommands>,
-    rx: tokio::sync::broadcast::Receiver<AudioPlayerStatus>,
+    pub is_playing: ReadSignal<bool, SyncStorage>,
 }
 
 #[derive(Debug)]
@@ -43,17 +43,49 @@ enum AudioPlayerStatus {
 impl AudioPlayer {
     fn new() -> Self {
         let (sync_tx, sync_rx) = std::sync::mpsc::channel::<AudioPlayerCommands>();
-        let (async_tx, async_rx) = tokio::sync::broadcast::channel(100);
+        let is_playing = use_signal_sync(|| false);
 
-        thread::spawn(|| audio_task(async_tx, sync_rx));
+        // NOTE: This is what prevents web support
+        thread::spawn(move || audio_task(sync_rx, &mut is_playing.into()));
 
         Self {
             tx: sync_tx,
-            rx: async_rx,
+            is_playing: is_playing.into(),
         }
     }
 
-    pub async fn play(&self, stream: Bytes) -> Result<()> {
+    pub async fn play(&self, track_id: u64) -> Result<()> {
+        info!("Fetch data for: {}", track_id);
+        let api = SoundCloudApi::default();
+
+        let tracks = api.tracks(track_id).await?;
+        let track = tracks.first().ok_or(anyhow!("No track found!"))?;
+
+        // TODO: Implement more formats
+        let transcodes: Vec<TrackTranscodeApi> = track
+            .media
+            .transcodings
+            .clone()
+            .into_iter()
+            .filter(|x| x.format.protocol == "hls")
+            .collect();
+        let transcode = transcodes.first().ok_or({
+            if track.media.transcodings.is_empty() {
+                anyhow!("No playback found!")
+            } else {
+                anyhow!("No compatible format found!")
+            }
+        })?;
+
+        if transcode.is_legacy_transcoding {
+            warn!("Legacy format detected!");
+        }
+
+        info!("Format {:?} with {}", transcode.format, transcode.preset);
+
+        let data = api.stream(transcode.url.clone()).await?;
+
+
         info!("Parsing m3u8");
 
         let playlist =
@@ -100,15 +132,8 @@ impl AudioPlayer {
         self.tx.send(AudioPlayerCommands::Resume).unwrap();
     }
 
-    pub async fn is_playing(&self) -> bool {
+    pub async fn is_playing(&self) {
         self.tx.send(AudioPlayerCommands::IsPlaying).unwrap();
-
-        let mut rx = self.rx.resubscribe();
-        loop {
-            if let AudioPlayerStatus::IsPlaying(status) = rx.recv().await.unwrap() {
-                return status;
-            }
-        }
     }
 
     // pub fn position(&self) -> Duration {
@@ -139,15 +164,6 @@ impl AudioPlayer {
     // }
 }
 
-impl Clone for AudioPlayer {
-    fn clone(&self) -> Self {
-        Self {
-            tx: self.tx.clone(),
-            rx: self.rx.resubscribe(),
-        }
-    }
-}
-
 impl Default for AudioPlayer {
     fn default() -> Self {
         SINGLETON_PLAYER.clone()
@@ -156,8 +172,8 @@ impl Default for AudioPlayer {
 
 // Audio on Web and Android is single threaded
 fn audio_task(
-    tx: tokio::sync::broadcast::Sender<AudioPlayerStatus>,
     rx: std::sync::mpsc::Receiver<AudioPlayerCommands>,
+    is_playing: &mut WriteSignal<bool, SyncStorage>,
 ) {
     let sink = AudioSink::default();
 
@@ -166,10 +182,7 @@ fn audio_task(
             AudioPlayerCommands::Play(stream) => sink.play(stream),
             AudioPlayerCommands::Pause => sink.pause(),
             AudioPlayerCommands::Resume => sink.resume(),
-            AudioPlayerCommands::IsPlaying => {
-                let is_playing = !sink.is_paused();
-                tx.send(AudioPlayerStatus::IsPlaying(is_playing)).unwrap();
-            }
+            AudioPlayerCommands::IsPlaying => is_playing.set(!sink.is_paused()),
         };
     }
 }

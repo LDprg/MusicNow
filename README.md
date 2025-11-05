@@ -28,6 +28,10 @@ This project will switch to a static compiled plugin system (similar to caddy) a
 
 IOS can be in theory be supported. However due to the lack of knowledge by the maintainers of this projects the storage paths are missing/broken. Feel free to contribute to fix this.
 
+## What about Web?
+
+Web dioxus web is horrible to work with when you need to deal with audio threads (which is best at its own seperate thread that cannot be easily created in wasm). Therefore web support is dropped for now. Feel free to contribute to add support, however consider opening an issue first to discuss technicalities.
+
 ## Other languages?
 
 The project is currently english only. This might be implemented using https://github.com/dioxus-community/dioxus-i18n, however might take until there is time for this.

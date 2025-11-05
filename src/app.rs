@@ -1,11 +1,11 @@
 use std::time::Duration;
 
 use crate::prelude::*;
-use crate::timer::*;
-use dioxus::{
-    prelude::*,
-};
+use crate::services;
+use dioxus::prelude::*;
 use dioxus_free_icons::{Icon, icons::hi_solid_icons::*};
+use tokio::time::Instant;
+use tokio::time::sleep;
 
 #[derive(Debug, Clone, Routable, PartialEq)]
 #[rustfmt::skip]
@@ -42,11 +42,13 @@ fn SongItems(search: ReadSignal<SearchApi>) -> Element {
                     class: "flex m-[8]",
                     onclick: move |_| {
                         let track = new_track.clone();
-
                         async move {
                             let mut player = use_context::<PlayerContext>();
 
+                            // player.audio_player.play(track.id);
+
                             *player.current_track.write() = Some(*track);
+
                             Ok(())
                         }
                     },
@@ -84,18 +86,18 @@ fn Home() -> Element {
         current_track: Signal::new(None),
     });
 
-    let mut position_sync = use_signal(|| Duration::ZERO);
-    let mut position_inst = use_signal(Instant::now);
+    let position_sync = use_signal(|| Duration::ZERO);
+    let position_inst = use_signal(Instant::now);
     let mut position = use_signal(|| Duration::ZERO);
 
-    let mut duration = use_signal(|| Duration::ZERO);
-    let mut is_paused = use_signal(|| true);
-    let mut volume = use_signal(|| 50.0);
+    let duration = use_signal(|| Duration::ZERO);
+    let volume = use_signal(|| 50.0);
+    let is_playing = use_signal(|| false);
 
     use_future(move || async move {
         loop {
             sleep(Duration::from_millis(10)).await;
-            if !is_paused() {
+            if is_playing() {
                 *position.write() = position_sync() + position_inst.read().elapsed();
             } else {
                 *position.write() = position_sync();
@@ -103,13 +105,17 @@ fn Home() -> Element {
         }
     });
 
+    let mut search_fn = use_action(move |query, limit, offset| async move {
+        let soundcloud = SoundCloudApi::default();
+        soundcloud.search(query, limit, offset).await
+    });
     let search_res = use_memo(move || {
-        // search_fn.value().map(|v| match v {
-        //     Ok(search) => rsx!(
-        //         SongItems { search }
-        //     ),
-        //     Err(err) => rsx!( "{err}" ),
-        // })
+        search_fn.value().map(|v| match v {
+            Ok(search) => rsx!(
+                SongItems { search }
+            ),
+            Err(err) => rsx!( "{err}" ),
+        })
     });
 
     rsx!(
@@ -121,7 +127,10 @@ fn Home() -> Element {
                     r#type: "search",
                     placeholder: "Search",
 
-                    oninput: move |event| async move {},
+                    oninput: move |event| async move {
+                        search_fn.cancel();
+                        search_fn.call(event.value(), 10, 0).await
+                    },
                 }
             }
 
@@ -166,11 +175,10 @@ fn Home() -> Element {
                             class: "btn btn-square",
                             width: "30px",
                             height: "30px",
-                            onclick: move |_| async move {},
-                            if is_paused() {
-                                Icon { width: 30, height: 30, icon: HiPause }
-                            } else {
+                            if is_playing() {
                                 Icon { width: 30, height: 30, icon: HiPlay }
+                            } else {
+                                Icon { width: 30, height: 30, icon: HiPause }
                             }
                         }
                         button {
@@ -190,7 +198,6 @@ fn Home() -> Element {
                         min: 0,
                         max: 100,
                         value: volume(),
-                        oninput: move |e| async move {},
                     }
                 }
             }

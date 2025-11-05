@@ -26,55 +26,24 @@ reqwest = { version = "0.12", default-features = false, features = [
 scraper = "0.24"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-tokio = { version = "1.48", default-features = false }
-rodio = { git = "https://github.com/RustAudio/rodio", branch = "feat/comprehensive-seeking-and-bit-depth", default-features = false, features = [
-    "playback",
-    "symphonia-flac",
-    "symphonia-isomp4",
-    "symphonia-mp3",
-    "symphonia-aac",
+tokio = { version = "1.48", features = ["full"] }
+rodio = { git = "https://github.com/RustAudio/rodio", branch = "feat/comprehensive-seeking-and-bit-depth", features = [
+    "symphonia-all",
     "symphonia-simd",
 ] }
 format_serde_error = "0.3"
 bytes = "1.10"
 directories = "6.0"
-gloo-timers = { version = "0.3", features = ["futures"], optional = true }
-web-time = { version = "1.1", optional = true }
 jni = { version = "0.21", optional = true }
-lazy_static = "1.5.0"
 
 [features]
 default = []
-web = [
-    "dioxus/web",
-    "dep:gloo-timers",
-    "dep:web-time",
-    "tokio/rt",
-    "tokio/sync",
-    "tokio/io-util",
-    "tokio/macros",
-    "rodio/wasm-bindgen",
-]
-desktop = ["dioxus/desktop", "tokio/full"]
-mobile = ["dioxus/mobile", "tokio/full", "dep:jni"]
-
-[profile]
+desktop = ["dioxus/desktop"]
+mobile = ["dioxus/mobile", "dep:jni"]
 
 [profile.release]
 codegen-units = 1
 lto = "thin"
-
-[profile.wasm-release]
-inherits = "release"
-opt-level = "s"
-strip = "debuginfo"
-
-[profile.wasm-dev]
-inherits = "dev"
-opt-level = 1
-
-[profile.server-dev]
-inherits = "dev"
 
 [profile.android-dev]
 inherits = "dev"

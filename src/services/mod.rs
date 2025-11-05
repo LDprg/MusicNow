@@ -1,10 +1,11 @@
-mod audio;
+// mod audio;
 // mod metabrainz;
 mod soundcloud;
 // mod storage;
 
 use tokio::join;
 
+// pub use self::audio::*;
 pub use self::soundcloud::*;
 
 mod meta;
@@ -24,11 +25,7 @@ async fn audio() {
 }
 
 pub fn spawn() {
-    // Web doesn't support multi threading
-    #[cfg(not(feature = "web"))]
     let runtime = tokio::runtime::Runtime::new().unwrap();
-    #[cfg(feature = "web")]
-    let runtime = tokio::runtime::Builder::new_current_thread().build().unwrap();
 
-    runtime.block_on(async { join!(audio()) });
+    runtime.block_on(async move { join!(audio()) });
 }

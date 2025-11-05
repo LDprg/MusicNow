@@ -83,15 +83,15 @@ impl SoundCloudApi {
         ))
     }
 
-    pub async fn search(&self, query: &str, limit: usize, offset: usize) -> Result<SearchApi> {
+    pub async fn search(&self, query: String, limit: usize, offset: usize) -> Result<SearchApi> {
         let resp = self
             .client
             .get(format!("{}{}", SC_API_URL, "/search"))
             .query(&[
                 ("q", query),
-                ("client_id", self.get_client_id()?.as_str()),
-                ("limit", limit.to_string().as_str()),
-                ("offset", offset.to_string().as_str()),
+                ("client_id", self.get_client_id()?),
+                ("limit", limit.to_string()),
+                ("offset", offset.to_string()),
             ])
             .send()
             .await?;
