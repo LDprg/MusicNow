@@ -35,11 +35,12 @@ format_serde_error = "0.3"
 bytes = "1.10"
 directories = "6.0"
 jni = { version = "0.21", optional = true }
+ndk-context = { version = "0.1", optional = true }
 
 [features]
 default = []
 desktop = ["dioxus/desktop"]
-mobile = ["dioxus/mobile", "dep:jni"]
+mobile = ["dioxus/mobile", "dep:jni", "dep:ndk-context"]
 
 [profile.release]
 codegen-units = 1

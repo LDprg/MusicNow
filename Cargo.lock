@@ -2808,6 +2808,7 @@ dependencies = [
  "format_serde_error",
  "jni",
  "m3u8-rs",
+ "ndk-context",
  "regex",
  "reqwest",
  "rodio",

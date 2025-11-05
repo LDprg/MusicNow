@@ -1,3 +1,4 @@
+use crate::prelude::*;
 use std::{path::PathBuf, sync::LazyLock};
 
 #[cfg(not(target_os = "android"))]
@@ -23,54 +24,40 @@ pub fn get_data_dir() -> PathBuf {
 }
 
 #[cfg(target_os = "android")]
-fn internal_storage_dir() -> anyhow::Result<PathBuf> {
-    use jni::objects::{JObject, JString};
-    use jni::JNIEnv;
+fn get_jni_app_dir(
+    context: &jni::objects::JObject<'_>,
+    env: &mut jni::JNIEnv<'_>,
+    method: &str,
+) -> anyhow::Result<String> {
+    let dir = env
+        .call_method(context, method, "()Ljava/io/File;", &[])?
+        .l()?;
 
-    let (tx, rx) = std::sync::mpsc::channel();
+    let path_string = env
+        .call_method(dir, "getPath", "()Ljava/lang/String;", &[])?
+        .l()?;
+    let path_string = jni::objects::JString::from(path_string);
+    let path_string = env.get_string(&path_string)?;
 
-    fn run(env: &mut JNIEnv<'_>, activity: &JObject<'_>) -> anyhow::Result<PathBuf> {
-        let files_dir = env
-            .call_method(activity, "getFilesDir", "()Ljava/io/File;", &[])?
-            .l()?;
-        let files_dir: JString<'_> = env
-            .call_method(files_dir, "getAbsolutePath", "()Ljava/lang/String;", &[])?
-            .l()?
-            .into();
-        let files_dir: String = env.get_string(&files_dir)?.into();
-        Ok(PathBuf::from(files_dir))
-    }
-
-    dioxus::mobile::wry::prelude::dispatch(move |env, activity, _webview| {
-        tx.send(run(env, activity)).unwrap()
-    });
-
-    rx.recv().unwrap()
+    Ok(path_string.into())
 }
 
 #[cfg(target_os = "android")]
-fn internal_cache_dir() -> anyhow::Result<PathBuf> {
-    use jni::objects::{JObject, JString};
-    use jni::JNIEnv;
+fn internal_storage_dir() -> anyhow::Result<String> {
+    let android_context = ndk_context::android_context();
+    let vm = unsafe { jni::JavaVM::from_raw(android_context.vm().cast()) }?;
+    let mut env = vm.attach_current_thread()?;
+    let context = unsafe { jni::objects::JObject::from_raw(android_context.context().cast()) };
 
-    let (tx, rx) = std::sync::mpsc::channel();
-
-    fn run(env: &mut JNIEnv<'_>, activity: &JObject<'_>) -> anyhow::Result<PathBuf> {
-        let files_dir = env
-            .call_method(activity, "getCacheDir", "()Ljava/io/File;", &[])?
-            .l()?;
-        let files_dir: JString<'_> = env
-            .call_method(files_dir, "getAbsolutePath", "()Ljava/lang/String;", &[])?
-            .l()?
-            .into();
-        let files_dir: String = env.get_string(&files_dir)?.into();
-        Ok(PathBuf::from(files_dir))
-    }
-
-    dioxus::mobile::wry::prelude::dispatch(move |env, activity, _webview| {
-        tx.send(run(env, activity)).unwrap()
-    });
-
-    rx.recv().unwrap()
+    get_jni_app_dir(&context, &mut env, "getFilesDir")
 }
 
+#[cfg(target_os = "android")]
+fn internal_cache_dir() -> anyhow::Result<String> {
+    let android_context = ndk_context::android_context();
+    let vm = unsafe { jni::JavaVM::from_raw(android_context.vm().cast()) }?;
+    let mut env = vm.attach_current_thread()?;
+    let context = unsafe { jni::objects::JObject::from_raw(android_context.context().cast()) };
+
+    get_jni_app_dir(&context, &mut env, "getCacheDir")
+}

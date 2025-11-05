@@ -32,6 +32,6 @@ script = []
 
 [bundle]
 publisher = "LDprg"
-identifier = "com.ldprg"
+identifier = "com.ldprg.MusicNow"
 icon = ["assets/icon.png"]
 category = "Music"
