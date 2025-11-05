@@ -2,6 +2,7 @@ use std::time::Duration;
 
 use crate::prelude::*;
 use crate::services;
+use dioxus::html::u::is;
 use dioxus::prelude::*;
 use dioxus_free_icons::{Icon, icons::hi_solid_icons::*};
 use tokio::time::Instant;
@@ -44,8 +45,9 @@ fn SongItems(search: ReadSignal<SearchApi>) -> Element {
                         let track = new_track.clone();
                         async move {
                             let mut player = use_context::<PlayerContext>();
+                            let audio_player = AudioPlayer::default();
 
-                            // player.audio_player.play(track.id);
+                            audio_player.play(track.id).await.inspect_err(|e| error!("{}", e))?;
 
                             *player.current_track.write() = Some(*track);
 
@@ -92,7 +94,7 @@ fn Home() -> Element {
 
     let duration = use_signal(|| Duration::ZERO);
     let volume = use_signal(|| 50.0);
-    let is_playing = use_signal(|| false);
+    let mut is_playing = use_signal(|| false);
 
     use_future(move || async move {
         loop {
@@ -103,6 +105,17 @@ fn Home() -> Element {
                 *position.write() = position_sync();
             }
         }
+    });
+
+    use_future(move || async move {
+        let audio_player = AudioPlayer::default();
+
+        dioxus::core::spawn(async move {
+            let mut is_playing_recv = audio_player.is_playing;
+             while let Ok(_) = is_playing_recv.changed().await {
+                 is_playing.set(*is_playing_recv.borrow());
+             }
+        });
     });
 
     let mut search_fn = use_action(move |query, limit, offset| async move {
@@ -129,7 +142,7 @@ fn Home() -> Element {
 
                     oninput: move |event| async move {
                         search_fn.cancel();
-                        search_fn.call(event.value(), 10, 0).await
+                        search_fn.call(event.value(), 20, 0).await
                     },
                 }
             }
@@ -175,6 +188,10 @@ fn Home() -> Element {
                             class: "btn btn-square",
                             width: "30px",
                             height: "30px",
+                            onclick: move |_| {
+                                let audio_player = AudioPlayer::default();
+                                if is_playing() { audio_player.pause() } else { audio_player.resume() }
+                            },
                             if is_playing() {
                                 Icon { width: 30, height: 30, icon: HiPlay }
                             } else {

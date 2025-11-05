@@ -1,11 +1,11 @@
-// mod audio;
+mod audio;
 // mod metabrainz;
 mod soundcloud;
 // mod storage;
 
 use tokio::join;
 
-// pub use self::audio::*;
+pub use self::audio::*;
 pub use self::soundcloud::*;
 
 mod meta;

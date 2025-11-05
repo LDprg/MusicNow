@@ -23,7 +23,7 @@ static SINGLETON_PLAYER: LazyLock<AudioPlayer> = LazyLock::new(AudioPlayer::new)
 #[derive(Clone, Debug)]
 pub struct AudioPlayer {
     tx: std::sync::mpsc::Sender<AudioPlayerCommands>,
-    pub is_playing: ReadSignal<bool, SyncStorage>,
+    pub is_playing: tokio::sync::watch::Receiver<bool>,
 }
 
 #[derive(Debug)]
@@ -34,23 +34,16 @@ enum AudioPlayerCommands {
     IsPlaying,
 }
 
-#[derive(Clone, Debug)]
-enum AudioPlayerStatus {
-    IsPlaying(bool),
-    Volume(f64),
-}
-
 impl AudioPlayer {
     fn new() -> Self {
         let (sync_tx, sync_rx) = std::sync::mpsc::channel::<AudioPlayerCommands>();
-        let is_playing = use_signal_sync(|| false);
+        let is_playing = tokio::sync::watch::channel::<bool>(false);
 
-        // NOTE: This is what prevents web support
-        thread::spawn(move || audio_task(sync_rx, &mut is_playing.into()));
+        thread::spawn(move || audio_task(sync_rx, is_playing.0));
 
         Self {
             tx: sync_tx,
-            is_playing: is_playing.into(),
+            is_playing: is_playing.1,
         }
     }
 
@@ -83,8 +76,7 @@ impl AudioPlayer {
 
         info!("Format {:?} with {}", transcode.format, transcode.preset);
 
-        let data = api.stream(transcode.url.clone()).await?;
-
+        let stream = api.stream(transcode.url.clone()).await?;
 
         info!("Parsing m3u8");
 
@@ -95,44 +87,52 @@ impl AudioPlayer {
 
         let segments = playlist.segments.clone();
         let tx = self.tx.clone();
-        let handle: JoinHandle<Result<()>> = tokio::task::spawn_local(async move {
-            let stream = AudioStreamer::default();
+        dioxus::core::spawn(async move {
+            let err: Result<()> = async move {
+                let stream = AudioStreamer::default();
 
-            info!("Starting audio");
-            tx.send(AudioPlayerCommands::Play(stream.clone())).unwrap();
+                info!("Starting audio");
+                tx.send(AudioPlayerCommands::Play(stream.clone())).unwrap();
 
-            info!("Starting stream");
+                info!("Starting stream");
 
-            for segment in segments {
-                if let Some(map) = &segment.map {
-                    let resp = reqwest::get(&map.uri).await?;
+                for segment in segments {
+                    if let Some(map) = &segment.map {
+                        let resp = reqwest::get(&map.uri).await?;
+                        let data = resp.bytes().await?;
+
+                        stream.append(&data).await;
+                    }
+
+                    let resp = reqwest::get(&segment.uri).await?;
                     let data = resp.bytes().await?;
-
                     stream.append(&data).await;
                 }
 
-                let resp = reqwest::get(&segment.uri).await?;
-                let data = resp.bytes().await?;
-                stream.append(&data).await;
+                stream.finish().await;
+
+                info!("Stream finished");
+
+                Ok(())
             }
+            .await;
 
-            stream.finish().await;
-
-            Ok(())
+            if let Err(e) = err {
+                error!("{}", e);
+            }
         });
 
+        self.tx.send(AudioPlayerCommands::IsPlaying).unwrap();
         Ok(())
     }
 
-    pub async fn pause(&self) {
+    pub fn pause(&self) {
         self.tx.send(AudioPlayerCommands::Pause).unwrap();
+        self.tx.send(AudioPlayerCommands::IsPlaying).unwrap();
     }
 
-    pub async fn resume(&self) {
+    pub fn resume(&self) {
         self.tx.send(AudioPlayerCommands::Resume).unwrap();
-    }
-
-    pub async fn is_playing(&self) {
         self.tx.send(AudioPlayerCommands::IsPlaying).unwrap();
     }
 
@@ -173,7 +173,7 @@ impl Default for AudioPlayer {
 // Audio on Web and Android is single threaded
 fn audio_task(
     rx: std::sync::mpsc::Receiver<AudioPlayerCommands>,
-    is_playing: &mut WriteSignal<bool, SyncStorage>,
+    is_playing: tokio::sync::watch::Sender<bool>,
 ) {
     let sink = AudioSink::default();
 
@@ -182,7 +182,7 @@ fn audio_task(
             AudioPlayerCommands::Play(stream) => sink.play(stream),
             AudioPlayerCommands::Pause => sink.pause(),
             AudioPlayerCommands::Resume => sink.resume(),
-            AudioPlayerCommands::IsPlaying => is_playing.set(!sink.is_paused()),
+            AudioPlayerCommands::IsPlaying => is_playing.send(!sink.is_paused()).unwrap(),
         };
     }
 }
