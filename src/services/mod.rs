@@ -7,6 +7,7 @@ use tokio::join;
 
 pub use self::audio::*;
 pub use self::soundcloud::*;
+pub use self::metabrainz::*;
 
 // TODO: Remove meta crate and make it part of soundcloud
 mod meta;

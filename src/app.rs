@@ -27,51 +27,62 @@ pub fn App() -> Element {
 
 #[derive(Clone)]
 struct PlayerContext {
-    pub current_track: Signal<Option<SearchTrackApi>>,
+    pub current_track: Signal<Option<ReleaseApi>>,
+    pub current_thumb: Signal<Option<ImageApi>>,
 }
 
 #[component]
-fn SongItems(search: ReadSignal<SearchApi>) -> Element {
+fn SongItems(search: ReadSignal<SearchReleaseApi<ReleaseApi>>) -> Element {
     let search = search.read();
-    let items = search.collection.iter().map(move |item| {
-        if let SearchElementApi::Track(track) = item {
-            let new_track = track.clone();
-            rsx!(
-                div {
-                    class: "flex m-[8]",
-                    onclick: move |_| {
-                        let track = new_track.clone();
-                        async move {
-                            let mut player = use_context::<PlayerContext>();
-                            let audio_player = AudioPlayer::default();
+    let items = search.releases.iter().map(move |item| {
+        let item = item.clone();
 
-                            audio_player.play(track.id).await.inspect_err(|e| error!("{}", e))?;
+        let image = use_resource(move || async move {
+            let coverartarchive = CoverArtArchiveApi::default();
+            coverartarchive.fetch_image(item.id).await
+        });
 
-                            *player.current_track.write() = Some(*track);
+        rsx!(
+            div {
+                class: "flex m-[8]",
+                onclick: move |_| {
+                    let item = item.clone();
+                    async move {
+                        let mut player = use_context::<PlayerContext>();
 
-                            Ok(())
-                        }
-                    },
-                    if let Some(url) = &track.artwork_url {
-                        img { src: url.to_string() }
+                        // let soundcloud = SoundCloudApi::default();
+                        // let track_id = soundcloud.search("".to_string(), 1, 0).await?;
+
+                        // let audio_player = AudioPlayer::default();
+                        // audio_player.play(track_id).await.inspect_err(|e| error!("{}", e))?;
+
+                        *player.current_track.write() = Some(item);
+                        // *player.current_thumb.write() = image.ok();
+
+                        Ok(())
                     }
-                    div {
-                        "{track.title}"
-                        br {}
-                        br {}
-                        if let Some(publisher_metadata) = &track.publisher_metadata
-                            && let Some(artist) = &publisher_metadata.artist
-                        {
-                            "{artist}"
-                        } else if let Some(user) = &track.user {
-                            "{user.username}"
-                        }
+                },
+                if let Some(image) = &*image.read() && let Ok(image) = image {
+                    img {
+                        width: 250,
+                        height: 250,
+                        src: image.thumbnails.s250.to_string(),
                     }
                 }
-            )
-        } else {
-            rsx!()
-        }
+                div {
+                    "{item.title}"
+                    br {}
+                    br {}
+                    {
+                        item.artist_credit
+                            .iter()
+                            .map(|i| i.name.clone())
+                            .collect::<Vec<String>>()
+                            .join(" & ")
+                    }
+                }
+            }
+        )
     });
 
     rsx!(
@@ -84,6 +95,7 @@ fn SongItems(search: ReadSignal<SearchApi>) -> Element {
 fn Home() -> Element {
     let player = use_context_provider(|| PlayerContext {
         current_track: Signal::new(None),
+        current_thumb: Signal::new(None),
     });
 
     let mut position_sync = use_signal(|| Duration::ZERO);
@@ -147,9 +159,11 @@ fn Home() -> Element {
         });
     });
 
-    let mut search_fn = use_action(move |query, limit, offset| async move {
-        let soundcloud = SoundCloudApi::default();
-        soundcloud.search(query, limit, offset).await
+    let mut search_fn = use_action(move |query: String, limit, offset| async move {
+        let musicbrainz = MusicBrainzApi::default();
+        musicbrainz
+            .search::<ReleaseApi>(query.clone(), limit, offset)
+            .await
     });
     let search_res = use_memo(move || {
         search_fn.value().map(|v| match v {
@@ -187,10 +201,12 @@ fn Home() -> Element {
 
                 div { class: "flex justify-items-center items-center w-full",
                     div { width: "50px", height: "50px",
-                        if let Some(track) = &*player.current_track.read()
-                            && let Some(url) = &track.artwork_url
-                        {
-                            img { width: 50, height: 50, src: url.to_string() }
+                        if let Some(url) = &*player.current_thumb.read() {
+                            img {
+                                width: 50,
+                                height: 50,
+                                src: url.image.to_string(),
+                            }
                         } else {
                             Icon { width: 50, height: 50, icon: HiBeaker }
                         }

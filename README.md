@@ -14,6 +14,14 @@ MusicNow features:
 - Playback without login
 - OpenSource so no spying or telemetry
 
+## TODO:
+
+- Add Search based on MusicBrainz
+- Create an adapter for MusicBarinz to Soundcloud
+- Make jumping within the audio possible
+- Implement ListenBrainz features
+- Abstract audio fetcher as plugin
+
 ## How to build
 
 Since it is a dioxus project it can be simple build and developed using the `dx` tool (see their docs for more info).
