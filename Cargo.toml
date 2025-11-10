@@ -8,7 +8,7 @@ edition = "2024"
 
 [dependencies]
 anyhow = "1.0"
-dioxus = { version = "0.7", features = ["router"] }
+dioxus = { version = "0.7.1", features = ["router"] }
 dioxus-free-icons = { version = "0.10", features = ["hero-icons-solid"] }
 m3u8-rs = "6.0"
 regex = "1.12"
@@ -24,8 +24,8 @@ reqwest = { version = "0.12", default-features = false, features = [
     "zstd",
 ] }
 scraper = "0.24"
-serde = { version = "1", features = ["derive"] }
-serde_json = "1"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
 tokio = { version = "1.48", features = ["full"] }
 rodio = { git = "https://github.com/RustAudio/rodio", branch = "feat/comprehensive-seeking-and-bit-depth", features = [
     "symphonia-all",
