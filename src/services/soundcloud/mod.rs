@@ -1,4 +1,7 @@
+mod meta;
+
 use crate::prelude::*;
+pub use self::meta::*;
 
 use bytes::Bytes;
 use format_serde_error::SerdeError;
@@ -83,6 +86,7 @@ impl SoundCloudApi {
         ))
     }
 
+    #[allow(dead_code)]
     pub async fn search(&self, query: String, limit: usize, offset: usize) -> Result<SearchApi> {
         let resp = self
             .client
@@ -109,6 +113,7 @@ impl SoundCloudApi {
         }
     }
 
+    #[allow(dead_code)]
     pub async fn tracks(&self, track_id: u64) -> Result<TracksApi> {
         let resp = self
             .client
@@ -133,6 +138,7 @@ impl SoundCloudApi {
         }
     }
 
+    #[allow(dead_code)]
     pub async fn stream(&self, url: Url) -> Result<Bytes> {
         info!("Url from: {}", url);
         let resp = self
