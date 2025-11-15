@@ -40,6 +40,8 @@ strum = { version = "0.27", features = ["derive"] }
 chrono = { version = "0.4", features = ["serde"] }
 uuid = { version = "1.18", features = ["serde"] }
 toml = "0.9"
+md-5 = "0.10"
+base16ct = { version = "0.2", features = ["alloc"] }
 
 [features]
 default = []

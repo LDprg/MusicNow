@@ -1,7 +1,7 @@
 mod meta;
 
-use crate::prelude::*;
 pub use self::meta::*;
+use crate::prelude::*;
 
 use bytes::Bytes;
 use format_serde_error::SerdeError;

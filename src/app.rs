@@ -127,6 +127,11 @@ fn Home() -> Element {
     });
 
     use_future(move || async move {
+        let lastfm = LastFM::default();
+        lastfm.login().await;
+    });
+
+    use_future(move || async move {
         let audio_player = AudioPlayer::default();
 
         dioxus::core::spawn(async move {

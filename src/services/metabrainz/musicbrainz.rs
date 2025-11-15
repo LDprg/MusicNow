@@ -41,7 +41,7 @@ pub struct ReleaseApi {
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[allow(dead_code)]
 pub struct ArtistCreditApi {
-    pub name: String
+    pub name: String,
 }
 
 impl SearchType for ReleaseApi {
@@ -49,7 +49,6 @@ impl SearchType for ReleaseApi {
         "release"
     }
 }
-
 
 #[derive(Clone, Debug)]
 pub struct MusicBrainzApi {
@@ -88,7 +87,8 @@ impl MusicBrainzApi {
             .unwrap();
 
         let text = resp.text().await?;
-        let json = serde_json::from_str::<SearchReleaseApi<T>>(&text).map_err(|err| SerdeError::new(text, err));
+        let json = serde_json::from_str::<SearchReleaseApi<T>>(&text)
+            .map_err(|err| SerdeError::new(text, err));
 
         match json {
             Err(err) => {

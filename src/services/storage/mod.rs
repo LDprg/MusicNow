@@ -5,18 +5,21 @@ use crate::prelude::*;
 use paths::*;
 use serde::{Deserialize, Serialize};
 
-use std::{fs::{self, File}, io::Write, path::PathBuf, sync::{Arc, LazyLock}};
+use std::{
+    fs::{self, File},
+    io::Write,
+    path::PathBuf,
+    sync::{Arc, LazyLock},
+};
 
 static SINGLETON_STORAGE: LazyLock<Storage> = LazyLock::new(Storage::new);
 
 #[derive(Serialize, Deserialize, Default, Debug)]
-pub struct StaticConfig {
-    lastfm_api_key: String,
-}
+pub struct StaticConfig {}
 
 #[derive(Clone, Debug)]
 pub struct Storage {
-    config: Arc<StaticConfig>,
+    pub config: Arc<StaticConfig>,
 }
 
 impl Storage {
@@ -28,13 +31,14 @@ impl Storage {
 
         let config_data = match fs::read_to_string(config_path) {
             Ok(str) => str,
+            // TODO: Make this not fully erase the config if error
             Err(_) => Storage::create_config(),
         };
 
-        let config : StaticConfig = toml::from_str(&config_data).unwrap();
+        let config: StaticConfig = toml::from_str(&config_data).unwrap();
         let config = Arc::new(config);
 
-        Self{config}
+        Self { config }
     }
 
     fn create_config() -> String {
@@ -47,7 +51,7 @@ impl Storage {
         data
     }
 
-    fn get_config_path()-> PathBuf{
+    fn get_config_path() -> PathBuf {
         get_data_dir().join("Config.toml")
     }
 }
@@ -57,5 +61,3 @@ impl Default for Storage {
         SINGLETON_STORAGE.clone()
     }
 }
-
-
