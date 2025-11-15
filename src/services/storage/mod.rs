@@ -18,6 +18,7 @@ static SINGLETON_STORAGE: LazyLock<Storage> = LazyLock::new(Storage::new);
 pub struct StaticConfig {}
 
 #[derive(Clone, Debug)]
+#[allow(dead_code)]
 pub struct Storage {
     pub config: Arc<StaticConfig>,
 }

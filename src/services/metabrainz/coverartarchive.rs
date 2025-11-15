@@ -59,7 +59,7 @@ impl CoverArtArchiveApi {
     pub async fn fetch_image(&self, mbid: Uuid) -> Result<ImageApi> {
         let resp = self
             .client
-            .get(format!("{}{}{}", CAA_URL, "/release/", mbid.to_string()))
+            .get(format!("{}{}{}", CAA_URL, "/release/", mbid))
             .send()
             .await
             .unwrap();

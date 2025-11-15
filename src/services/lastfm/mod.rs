@@ -1,25 +1,24 @@
 use crate::prelude::*;
 
 use std::{
-    sync::{Arc, LazyLock, Mutex, RwLock},
+    fmt,
+    sync::{Arc, LazyLock, Mutex},
     time::Duration,
 };
 
-use m3u8_rs::SessionData;
 use md5::{Digest, Md5};
-use reqwest::{RequestBuilder, Url};
+use reqwest::RequestBuilder;
 use serde::Deserialize;
 use serde_json::Value;
-use strum::{Display, EnumString};
 use tokio::time::sleep;
-
-use crate::services::storage::Storage;
 
 const LASTFM_URL: &str = "http://www.last.fm";
 const LASTFM_API_URL: &str = "http://ws.audioscrobbler.com/2.0/";
 
 const LASTFM_API_KEY: &str = "581cd09d1d47ce7e760ce5ff9a8513e2";
 const LASTFM_SECRET: &str = "9ee7f889d438878fc0560f3ef38b2016";
+
+const LASTFM_SESSION_INTERVAL: Duration = Duration::from_secs(2);
 
 static SINGLETON_LASTFM: LazyLock<LastFM> = LazyLock::new(LastFM::new);
 
@@ -31,10 +30,10 @@ pub enum LastFMMethod {
     Auth(LastFMAuthMethod),
 }
 
-impl LastFMMethod {
-    fn to_string(&self) -> String {
+impl fmt::Display for LastFMMethod {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            LastFMMethod::Auth(auth) => auth.to_string(),
+            LastFMMethod::Auth(auth) => write!(f, "{}", auth),
         }
     }
 }
@@ -48,13 +47,14 @@ impl AuthLevel for LastFMMethod {
 }
 
 #[derive(Clone, Copy, Debug)]
+#[allow(dead_code)]
 pub enum LastFMAuthLevel {
-    None = 0,
-    Token = 1,
-    Session = 2,
+    None,
+    Token,
+    Session,
 }
 
-#[derive(Clone, Display)]
+#[derive(Clone, strum::Display)]
 #[strum(serialize_all = "lowercase", prefix = "auth.")]
 pub enum LastFMAuthMethod {
     GetSession,
@@ -70,13 +70,14 @@ impl AuthLevel for LastFMAuthMethod {
     }
 }
 
-impl Into<LastFMMethod> for LastFMAuthMethod {
-    fn into(self) -> LastFMMethod {
-        LastFMMethod::Auth(self)
+impl From<LastFMAuthMethod> for LastFMMethod {
+    fn from(value: LastFMAuthMethod) -> Self {
+        LastFMMethod::Auth(value)
     }
 }
 
 #[derive(Deserialize, Debug)]
+#[allow(dead_code)]
 struct LastFMApiError {
     message: String,
     error: i64,
@@ -123,9 +124,10 @@ impl LastFM {
         let json = req.json::<Value>().await.unwrap();
         let token = json.get("token").unwrap().as_str().unwrap();
 
-        let mut inner = self.inner.lock().unwrap();
-        inner.token = token.to_string();
-        drop(inner);
+        {
+            let mut inner = self.inner.lock().unwrap();
+            inner.token = token.to_string();
+        }
 
         info!("Token: {}", token);
         info!("Opening Browser");
@@ -135,6 +137,7 @@ impl LastFM {
             LASTFM_URL, LASTFM_API_KEY, token
         );
 
+        // TODO: Maybe a wrapper?
         desktop!(
             dioxus::desktop::use_window().webview.load_url(url.as_str()).unwrap();
         );
@@ -143,6 +146,7 @@ impl LastFM {
         );
 
         info!("Get Session!");
+        // TODO: Clean up this
         loop {
             let req = self
                 .create_req(LastFMAuthMethod::GetSession.into())
@@ -167,7 +171,7 @@ impl LastFM {
                 break;
             }
 
-            sleep(Duration::from_secs(2)).await;
+            sleep(LASTFM_SESSION_INTERVAL).await;
         }
     }
 

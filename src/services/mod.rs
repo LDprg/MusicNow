@@ -12,7 +12,6 @@ pub use self::metabrainz::*;
 pub use self::soundcloud::*;
 
 use self::storage::Storage;
-pub use self::storage::*;
 
 use crate::prelude::*;
 

@@ -1,11 +1,10 @@
-use crate::prelude::*;
 use std::{path::PathBuf, sync::LazyLock};
 
 #[cfg(not(target_os = "android"))]
 use directories::ProjectDirs;
 
 #[cfg(not(target_os = "android"))]
-const PROJECTDIRS: LazyLock<ProjectDirs> = LazyLock::new(|| {
+static PROJECTDIRS: LazyLock<ProjectDirs> = LazyLock::new(|| {
     ProjectDirs::from("com", "LDprg", "MusicNow").expect("Couldn't create application dirs.")
 });
 

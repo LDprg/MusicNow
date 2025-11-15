@@ -23,6 +23,7 @@ pub struct AudioPlayer {
 }
 
 #[derive(Debug)]
+#[allow(dead_code)]
 enum AudioPlayerCommands {
     Play(AudioStreamer),
     Pause,
@@ -53,6 +54,7 @@ impl AudioPlayer {
         }
     }
 
+    #[allow(dead_code)]
     pub async fn play(&self, track_id: u64) -> Result<()> {
         info!("Fetch data for: {}", track_id);
         let api = SoundCloudApi::default();
