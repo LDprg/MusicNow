@@ -194,7 +194,7 @@ impl LastFM {
         track: String,
         limit: usize,
         page: usize,
-    ) -> Result<LastFMApiTrackSearchWrapper> {
+    ) -> Result<LastFMApiTrackSearch> {
         let req = self
             .create_req(LastFMTrackMethod::Search.into())
             .query(&[
@@ -212,14 +212,14 @@ impl LastFM {
             error!("Error: {:#?}", err);
             Err(anyhow!(format!("{:#?}", err)))
         } else {
-            let json = serde_json::from_str(&text).map_err(|err| SerdeError::new(text, err));
+            let json : Result<LastFMApiTrackSearchWrapper, _> = serde_json::from_str(&text).map_err(|err| SerdeError::new(text, err));
 
             match json {
                 Err(err) => {
                     error!("Error decoding json: {}", err);
                     Err(anyhow!(err))
                 }
-                Ok(json) => Ok(json),
+                Ok(json) => Ok(json.results),
             }
         }
     }

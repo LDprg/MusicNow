@@ -15,15 +15,16 @@ pub struct LastFMApiTrackSearchWrapper {
     pub results: LastFMApiTrackSearch,
 }
 
+// TODO: fix u64/UUUID curently as String
 #[derive(Deserialize, Debug)]
 #[allow(dead_code)]
 pub struct LastFMApiTrackSearch {
     #[serde(rename = "opensearch:totalResults")]
-    pub total_results: u64,
+    pub total_results: String,
     #[serde(rename = "opensearch:startIndex")]
-    pub start_index: u64,
+    pub start_index: String,
     #[serde(rename = "opensearch:itemsPerPage")]
-    pub items_per_page: u64,
+    pub items_per_page: String,
 
     pub trackmatches: LastFMApiTrackWrapper,
 }
@@ -34,24 +35,24 @@ pub struct LastFMApiTrackWrapper {
     pub track: Vec<LastFMApiTrack>,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Clone, Debug)]
 #[allow(dead_code)]
 pub struct LastFMApiTrack {
     pub name: String,
     pub artist: String,
     pub url: Url,
-    pub listeners: u64,
-    pub image: LastFMApiTrackImage,
-    pub mbid: Uuid,
+    pub listeners: String,
+    pub mbid: Option<Uuid>,
 }
 
-#[derive(Debug)]
+// BROKEN LASFTFM
+#[derive(Clone, Debug)]
 #[allow(dead_code)]
 pub struct LastFMApiTrackImage {
-    small: Url,
-    medium: Url,
-    large: Url,
-    extralarge: Url,
+    pub small: Option<Url>,
+    pub medium: Option<Url>,
+    pub large: Option<Url>,
+    pub extralarge: Option<Url>,
 }
 
 #[derive(Deserialize)]
@@ -83,11 +84,16 @@ impl<'d> Deserialize<'d> for LastFMApiTrackImage {
                 .ok_or(serde::de::Error::missing_field(size))
         };
 
+        let small = search(&items, "small").ok();
+        let medium = search(&items, "medium").ok();
+        let large = search(&items, "large").ok();
+        let extralarge = search(&items, "extralarge").ok();
+
         let out = Self {
-            small: search(&items, "small")?,
-            medium: search(&items, "medium")?,
-            large: search(&items, "large")?,
-            extralarge: search(&items, "extralarge")?,
+            small,
+            medium,
+            large,
+            extralarge,
         };
 
         Ok(out)

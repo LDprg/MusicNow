@@ -58,7 +58,7 @@ impl From<LastFMAuthMethod> for LastFMMethod {
 }
 
 #[derive(Clone, strum::Display)]
-#[strum(serialize_all = "lowercase", prefix = "auth.")]
+#[strum(serialize_all = "lowercase", prefix = "track.")]
 pub enum LastFMTrackMethod {
     Search,
 }

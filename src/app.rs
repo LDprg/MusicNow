@@ -27,26 +27,37 @@ pub fn App() -> Element {
 
 #[derive(Clone)]
 struct PlayerContext {
-    pub current_track: Signal<Option<ReleaseApi>>,
+    pub current_track: Signal<Option<LastFMApiTrack>>,
     pub current_thumb: Signal<Option<ImageApi>>,
 }
 
 #[component]
-fn SongItems(search: ReadSignal<SearchReleaseApi<ReleaseApi>>) -> Element {
+fn SongItems(search: ReadSignal<LastFMApiTrackSearch>) -> Element {
     let search = search.read();
-    let items = search.releases.iter().map(move |item| {
+    let items = search.trackmatches.track.iter().map(move |item| {
         let item = item.clone();
+        let item_other = item.clone();
 
         let image = use_resource(move || async move {
             let coverartarchive = CoverArtArchiveApi::default();
-            coverartarchive.fetch_image(item.id).await
+            let mut player = use_context::<PlayerContext>();
+
+            let image = coverartarchive
+                .fetch_image(item.mbid.ok_or(anyhow!("No image!"))?)
+                .await;
+
+            if let Ok(image) = &image {
+                *player.current_thumb.write() = Some(image.clone());
+            }
+
+            image
         });
 
         rsx!(
             div {
                 class: "flex m-[8]",
                 onclick: move |_| {
-                    let item = item.clone();
+                    let item = item_other.clone();
                     async move {
                         let mut player = use_context::<PlayerContext>();
 
@@ -57,7 +68,6 @@ fn SongItems(search: ReadSignal<SearchReleaseApi<ReleaseApi>>) -> Element {
                         // audio_player.play(track_id).await.inspect_err(|e| error!("{}", e))?;
 
                         *player.current_track.write() = Some(item);
-                        // *player.current_thumb.write() = image.ok();
 
                         Ok(())
                     }
@@ -68,18 +78,14 @@ fn SongItems(search: ReadSignal<SearchReleaseApi<ReleaseApi>>) -> Element {
                         height: 250,
                         src: image.thumbnails.s250.to_string(),
                     }
+                } else {
+                    Icon { width: 250, height: 250, icon: HiBeaker }
                 }
                 div {
-                    "{item.title}"
+                    {item.name}
                     br {}
                     br {}
-                    {
-                        item.artist_credit
-                            .iter()
-                            .map(|i| i.name.clone())
-                            .collect::<Vec<String>>()
-                            .join(" & ")
-                    }
+                    {item.artist}
                 }
             }
         )
@@ -165,10 +171,8 @@ fn Home() -> Element {
     });
 
     let mut search_fn = use_action(move |query: String, limit, offset| async move {
-        let musicbrainz = MusicBrainzApi::default();
-        musicbrainz
-            .search::<ReleaseApi>(query.clone(), limit, offset)
-            .await
+        let lastfm = LastFM::default();
+        lastfm.search(query.clone(), limit, offset).await
     });
     let search_res = use_memo(move || {
         search_fn.value().map(|v| match v {
@@ -190,7 +194,7 @@ fn Home() -> Element {
 
                     oninput: move |event| async move {
                         search_fn.cancel();
-                        search_fn.call(event.value(), 20, 0).await
+                        search_fn.call(event.value(), 20, 1).await
                     },
                 }
             }
@@ -206,11 +210,11 @@ fn Home() -> Element {
 
                 div { class: "flex justify-items-center items-center w-full",
                     div { width: "50px", height: "50px",
-                        if let Some(url) = &*player.current_thumb.read() {
+                        if let Some(image) = &*player.current_thumb.read() {
                             img {
                                 width: 50,
                                 height: 50,
-                                src: url.image.to_string(),
+                                src: image.image.to_string(),
                             }
                         } else {
                             Icon { width: 50, height: 50, icon: HiBeaker }
@@ -218,7 +222,7 @@ fn Home() -> Element {
                     }
                     div {
                         if let Some(track) = &*player.current_track.read() {
-                            {track.title.clone()}
+                            {track.name.clone()}
                         } else {
                             "Song"
                         }
