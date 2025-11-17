@@ -8,24 +8,24 @@ Well music now it a reaction to Spotify's broken app (It has been broken alot fo
 
 MusicNow features:
 
-- Fullstack Rust from web-request to ui to audio playback and decoding
+- Fullstack Rust from requests to ui to audio playback and decoding
 - Fast and responsive due to dioxus
-- Crossplatform (Linux, Windows, Android)
+- Crossplatform (Linux, Windows, MacOS, Android)
 - Playback without login
 - OpenSource so no spying or telemetry
 
 ## TODO:
 
-- Add Search based on MusicBrainz
-- Create an adapter for MusicBarinz to Soundcloud
+- Add Search based on LastFM
+- Create an adapter for MusicBarinz/LastFM to Soundcloud
 - Make jumping within the audio possible
-- Implement ListenBrainz features
+- Implement LastFM features
 - Abstract audio fetcher as plugin
 
 ## How to build
 
 Since it is a dioxus project it can be simple build and developed using the `dx` tool (see their docs for more info).
-Be aware that the dioxus cli version needs to match the dioxus one (currently 0.7.0).
+Be aware that the dioxus cli version needs to match the dioxus one (currently 0.7.1).
 
 ## Where does the music come from?
 
@@ -35,10 +35,12 @@ This project will switch to a static compiled plugin system (similar to caddy) a
 ## What about IOS?
 
 IOS can be in theory be supported. However due to the lack of knowledge by the maintainers of this projects the storage paths are missing/broken. Feel free to contribute to fix this.
+This should be quite straight forward to actually do.
 
 ## What about Web?
 
 Web dioxus web is horrible to work with when you need to deal with audio threads (which is best at its own seperate thread that cannot be easily created in wasm). Therefore web support is dropped for now. Feel free to contribute to add support, however consider opening an issue first to discuss technicalities.
+Be warned it might be very complicated to actually Implement this without breaking alot!
 
 ## Other languages?
 
@@ -46,7 +48,8 @@ The project is currently english only. This might be implemented using https://g
 
 ## Contributions
 
-Feel free to open an PR or Issue at any time.
+Feel free to open an PR or Issue at any time. For larger changes you may consider opening a issue first, so the change could be discussed before a PR is drafted.
+Especially Contributions for the UI are welcomed!
 
 Note that fully AI generated PRs won't get merged.
 AI generated parts are ok as long as they are properly reviewed by the creator of the code and accepted by me.

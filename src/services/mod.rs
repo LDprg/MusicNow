@@ -11,7 +11,7 @@ pub use self::lastfm::*;
 pub use self::metabrainz::*;
 pub use self::soundcloud::*;
 
-use self::storage::Storage;
+use self::storage::*;
 
 use crate::prelude::*;
 
@@ -24,7 +24,7 @@ async fn soundcloud() {
 pub fn spawn() {
     let runtime = tokio::runtime::Runtime::new().unwrap();
 
-    let _ = Storage::default();
+    let _ = DataStorage::default();
     info!("Storage initizialised!");
 
     runtime.block_on(async move { join!(soundcloud()) });

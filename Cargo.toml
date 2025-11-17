@@ -1,5 +1,5 @@
 [package]
-name = "music-now"
+name = "musicnow"
 version = "0.1.0"
 authors = ["LDprg <lukas_4dr@gmx.at>"]
 edition = "2024"
@@ -41,7 +41,8 @@ chrono = { version = "0.4", features = ["serde"] }
 uuid = { version = "1.18", features = ["serde"] }
 toml = "0.9"
 md-5 = "0.10"
-base16ct = { version = "0.2", features = ["alloc"] }
+base16ct = { version = "0.3", features = ["alloc"] }
+bincode = { version = "2.0", features = ["serde"] }
 
 [features]
 default = []

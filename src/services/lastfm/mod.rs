@@ -1,16 +1,23 @@
-use crate::prelude::*;
+use crate::{
+    prelude::*,
+    services::storage::{DataStorage, LastFMStorage},
+};
 
 use std::{
-    fmt,
     sync::{Arc, LazyLock, Mutex},
     time::Duration,
 };
 
 use md5::{Digest, Md5};
 use reqwest::RequestBuilder;
-use serde::Deserialize;
 use serde_json::Value;
 use tokio::time::sleep;
+
+mod api;
+mod meta;
+
+pub use self::api::*;
+pub use self::meta::*;
 
 const LASTFM_URL: &str = "http://www.last.fm";
 const LASTFM_API_URL: &str = "http://ws.audioscrobbler.com/2.0/";
@@ -21,67 +28,6 @@ const LASTFM_SECRET: &str = "9ee7f889d438878fc0560f3ef38b2016";
 const LASTFM_SESSION_INTERVAL: Duration = Duration::from_secs(2);
 
 static SINGLETON_LASTFM: LazyLock<LastFM> = LazyLock::new(LastFM::new);
-
-trait AuthLevel {
-    fn auth_level(&self) -> LastFMAuthLevel;
-}
-
-pub enum LastFMMethod {
-    Auth(LastFMAuthMethod),
-}
-
-impl fmt::Display for LastFMMethod {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            LastFMMethod::Auth(auth) => write!(f, "{}", auth),
-        }
-    }
-}
-
-impl AuthLevel for LastFMMethod {
-    fn auth_level(&self) -> LastFMAuthLevel {
-        match self {
-            LastFMMethod::Auth(auth) => auth.auth_level(),
-        }
-    }
-}
-
-#[derive(Clone, Copy, Debug)]
-#[allow(dead_code)]
-pub enum LastFMAuthLevel {
-    None,
-    Token,
-    Session,
-}
-
-#[derive(Clone, strum::Display)]
-#[strum(serialize_all = "lowercase", prefix = "auth.")]
-pub enum LastFMAuthMethod {
-    GetSession,
-    GetToken,
-}
-
-impl AuthLevel for LastFMAuthMethod {
-    fn auth_level(&self) -> LastFMAuthLevel {
-        match self {
-            LastFMAuthMethod::GetSession => LastFMAuthLevel::Token,
-            LastFMAuthMethod::GetToken => LastFMAuthLevel::None,
-        }
-    }
-}
-
-impl From<LastFMAuthMethod> for LastFMMethod {
-    fn from(value: LastFMAuthMethod) -> Self {
-        LastFMMethod::Auth(value)
-    }
-}
-
-#[derive(Deserialize, Debug)]
-#[allow(dead_code)]
-struct LastFMApiError {
-    message: String,
-    error: i64,
-}
 
 #[derive(Clone, Debug)]
 pub struct LastFM {
@@ -130,6 +76,21 @@ impl LastFM {
         }
 
         info!("Token: {}", token);
+
+        let storage = DataStorage::default();
+        let data = storage.load_lastfm();
+
+        if !data.session_key.is_empty() && !data.username.is_empty() {
+            info!("Load Session from file");
+            {
+                let mut inner = self.inner.lock().unwrap();
+                inner.username = data.username;
+                inner.session_key = data.session_key;
+            }
+
+            return;
+        }
+
         info!("Opening Browser");
 
         let url = format!(
@@ -146,7 +107,6 @@ impl LastFM {
         );
 
         info!("Get Session!");
-        // TODO: Clean up this
         loop {
             let req = self
                 .create_req(LastFMAuthMethod::GetSession.into())
@@ -162,10 +122,20 @@ impl LastFM {
                 let json = serde_json::from_str::<Value>(&text).unwrap();
                 let session = json.get("session").unwrap();
 
-                let mut inner = self.inner.lock().unwrap();
-                inner.username = session.get("name").unwrap().as_str().unwrap().to_string();
-                inner.session_key = session.get("key").unwrap().as_str().unwrap().to_string();
-                drop(inner);
+                let username = session.get("name").unwrap().as_str().unwrap().to_string();
+                let session_key = session.get("key").unwrap().as_str().unwrap().to_string();
+
+                let storage = DataStorage::default();
+                storage.store_lastfm(LastFMStorage {
+                    username: username.clone(),
+                    session_key: session_key.clone(),
+                });
+
+                {
+                    let mut inner = self.inner.lock().unwrap();
+                    inner.username = username;
+                    inner.session_key = session_key;
+                }
 
                 info!("Success: {:#?}", self);
                 break;
@@ -210,7 +180,7 @@ impl LastFM {
                 ("token", token),
             ]),
             LastFMAuthLevel::Session => req.query(&[
-                ("api_sig", self.create_sig(method, token)),
+                ("api_sig", self.create_sig(method, session_key.clone())),
                 ("sk", session_key),
             ]),
         }
