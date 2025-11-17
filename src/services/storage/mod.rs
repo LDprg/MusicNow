@@ -17,8 +17,8 @@ const BINCODE_CONFIG: bincode::config::Configuration = bincode::config::standard
 static SINGLETON_STORAGE: LazyLock<DataStorage> = LazyLock::new(DataStorage::new);
 
 // Only make android systemcalls once
-static DATA_DIR : LazyLock<PathBuf> = LazyLock::new(get_data_dir);
-static CACHE_DIR : LazyLock<PathBuf> = LazyLock::new(get_cache_dir);
+static DATA_DIR: LazyLock<PathBuf> = LazyLock::new(get_data_dir);
+static CACHE_DIR: LazyLock<PathBuf> = LazyLock::new(get_cache_dir);
 
 #[derive(Serialize, Deserialize, Default, Debug)]
 pub struct StaticConfig {}
@@ -66,12 +66,14 @@ impl DataStorage {
     }
 
     pub fn store_lastfm(&self, data: LastFMStorage) {
-        let mut secret_storage = Self::get_storage_bincode::<SecretStorage>(Self::get_secret_path());
+        let mut secret_storage =
+            Self::get_storage_bincode::<SecretStorage>(Self::get_secret_path());
 
         secret_storage.last_fm = data;
 
         let mut file = File::create(Self::get_secret_path()).unwrap();
-        _ = bincode::serde::encode_into_std_write(secret_storage, &mut file, BINCODE_CONFIG).unwrap();
+        _ = bincode::serde::encode_into_std_write(secret_storage, &mut file, BINCODE_CONFIG)
+            .unwrap();
     }
 
     fn get_storage_toml<T: Serialize + DeserializeOwned + Default>(path: PathBuf) -> T {

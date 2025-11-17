@@ -4,10 +4,12 @@ use crate::{
 };
 
 use std::{
+    any,
     sync::{Arc, LazyLock, Mutex},
     time::Duration,
 };
 
+use format_serde_error::SerdeError;
 use md5::{Digest, Md5};
 use reqwest::RequestBuilder;
 use serde_json::Value;
@@ -58,6 +60,47 @@ impl LastFM {
                 username: "".to_string(),
                 session_key: "".to_string(),
             })),
+        }
+    }
+
+    fn create_sig(&self, method: LastFMMethod, token: String) -> String {
+        let mut md5 = Md5::new();
+        md5.update("api_key");
+        md5.update(LASTFM_API_KEY);
+        md5.update("method");
+        md5.update(method.to_string());
+        md5.update("token");
+        md5.update(token);
+        md5.update(LASTFM_SECRET);
+        let hash = md5.finalize();
+
+        base16ct::lower::encode_string(&hash)
+    }
+
+    fn create_req(&self, method: LastFMMethod) -> RequestBuilder {
+        let method_str: String = method.to_string();
+
+        let req = self.client.get(LASTFM_API_URL).query(&[
+            ("method", method_str.as_str()),
+            ("api_key", LASTFM_API_KEY),
+            ("format", "json"),
+        ]);
+
+        let inner = self.inner.lock().unwrap();
+        let token = inner.token.clone();
+        let session_key = inner.session_key.clone();
+        drop(inner);
+
+        match method.auth_level() {
+            LastFMAuthLevel::None => req,
+            LastFMAuthLevel::Token => req.query(&[
+                ("api_sig", self.create_sig(method, token.clone())),
+                ("token", token),
+            ]),
+            LastFMAuthLevel::Session => req.query(&[
+                ("api_sig", self.create_sig(method, session_key.clone())),
+                ("sk", session_key),
+            ]),
         }
     }
 
@@ -145,44 +188,39 @@ impl LastFM {
         }
     }
 
-    fn create_sig(&self, method: LastFMMethod, token: String) -> String {
-        let mut md5 = Md5::new();
-        md5.update("api_key");
-        md5.update(LASTFM_API_KEY);
-        md5.update("method");
-        md5.update(method.to_string());
-        md5.update("token");
-        md5.update(token);
-        md5.update(LASTFM_SECRET);
-        let hash = md5.finalize();
+    // TODO: artist attr
+    pub async fn search(
+        &self,
+        track: String,
+        limit: usize,
+        page: usize,
+    ) -> Result<LastFMApiTrackSearchWrapper> {
+        let req = self
+            .create_req(LastFMTrackMethod::Search.into())
+            .query(&[
+                ("track", track),
+                ("limit", limit.to_string()),
+                ("page", page.to_string()),
+            ])
+            .send()
+            .await
+            .unwrap();
 
-        base16ct::lower::encode_string(&hash)
-    }
+        let text = req.text().await.unwrap();
 
-    fn create_req(&self, method: LastFMMethod) -> RequestBuilder {
-        let method_str: String = method.to_string();
+        if let Ok(err) = serde_json::from_str::<LastFMApiError>(&text) {
+            error!("Error: {:#?}", err);
+            Err(anyhow!(format!("{:#?}", err)))
+        } else {
+            let json = serde_json::from_str(&text).map_err(|err| SerdeError::new(text, err));
 
-        let req = self.client.get(LASTFM_API_URL).query(&[
-            ("method", method_str.as_str()),
-            ("api_key", LASTFM_API_KEY),
-            ("format", "json"),
-        ]);
-
-        let inner = self.inner.lock().unwrap();
-        let token = inner.token.clone();
-        let session_key = inner.session_key.clone();
-        drop(inner);
-
-        match method.auth_level() {
-            LastFMAuthLevel::None => req,
-            LastFMAuthLevel::Token => req.query(&[
-                ("api_sig", self.create_sig(method, token.clone())),
-                ("token", token),
-            ]),
-            LastFMAuthLevel::Session => req.query(&[
-                ("api_sig", self.create_sig(method, session_key.clone())),
-                ("sk", session_key),
-            ]),
+            match json {
+                Err(err) => {
+                    error!("Error decoding json: {}", err);
+                    Err(anyhow!(err))
+                }
+                Ok(json) => Ok(json),
+            }
         }
     }
 }
