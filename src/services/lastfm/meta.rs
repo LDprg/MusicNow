@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use reqwest::Url;
 use serde::Deserialize;
 use uuid::Uuid;
@@ -19,12 +21,21 @@ pub struct LastFMApiTrackSearchWrapper {
 #[derive(Deserialize, Debug)]
 #[allow(dead_code)]
 pub struct LastFMApiTrackSearch {
-    #[serde(rename = "opensearch:totalResults")]
-    pub total_results: String,
-    #[serde(rename = "opensearch:startIndex")]
-    pub start_index: String,
-    #[serde(rename = "opensearch:itemsPerPage")]
-    pub items_per_page: String,
+    #[serde(
+        rename = "opensearch:totalResults",
+        deserialize_with = "string_unwrap_deserialize"
+    )]
+    pub total_results: u64,
+    #[serde(
+        rename = "opensearch:startIndex",
+        deserialize_with = "string_unwrap_deserialize"
+    )]
+    pub start_index: u64,
+    #[serde(
+        rename = "opensearch:itemsPerPage",
+        deserialize_with = "string_unwrap_deserialize"
+    )]
+    pub items_per_page: u64,
 
     pub trackmatches: LastFMApiTrackWrapper,
 }
@@ -41,8 +52,30 @@ pub struct LastFMApiTrack {
     pub name: String,
     pub artist: String,
     pub url: Url,
-    pub listeners: String,
+    #[serde(deserialize_with = "string_unwrap_deserialize")]
+    pub listeners: u64,
+    #[serde(deserialize_with = "option_deserialize")]
     pub mbid: Option<Uuid>,
+}
+
+fn option_deserialize<'d, D, T: Deserialize<'d>>(deserializer: D) -> Result<Option<T>, D::Error>
+where
+    D: serde::Deserializer<'d>,
+{
+    let uuid = T::deserialize(deserializer);
+    Ok(uuid.ok())
+}
+
+fn string_unwrap_deserialize<'d, D, T>(deserializer: D) -> Result<T, D::Error>
+where
+    D: serde::Deserializer<'d>,
+    T: FromStr,
+    <T as FromStr>::Err: std::fmt::Debug,
+{
+    let string = String::deserialize(deserializer)?;
+    Ok(string
+        .parse::<T>()
+        .map_err(|e| serde::de::Error::custom(format!("{:?}", e)))?)
 }
 
 // BROKEN LASFTFM

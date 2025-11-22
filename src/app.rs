@@ -74,18 +74,23 @@ fn SongItems(search: ReadSignal<LastFMApiTrackSearch>) -> Element {
                 },
                 if let Some(image) = &*image.read() && let Ok(image) = image {
                     img {
-                        width: 250,
-                        height: 250,
+                        width: 100,
+                        height: 100,
                         src: image.thumbnails.s250.to_string(),
                     }
                 } else {
-                    Icon { width: 250, height: 250, icon: HiBeaker }
+                    Icon { width: 100, height: 100, icon: HiBeaker }
                 }
                 div {
-                    {item.name}
+                    {format!("Name: {}", item.name)}
                     br {}
+                    {format!("Artist: {}", item.artist)}
                     br {}
-                    {item.artist}
+                                // {
+                //     item.mbid
+                //         .map(|x| format!("Mbid: {}", x.to_string()))
+                //         .unwrap_or("No mbid found!".to_string())
+                // }
                 }
             }
         )

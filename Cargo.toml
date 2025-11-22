@@ -32,7 +32,7 @@ rodio = { git = "https://github.com/RustAudio/rodio", branch = "feat/comprehensi
     "symphonia-simd",
 ] }
 format_serde_error = "0.3"
-bytes = "1.10"
+bytes = "1.11"
 directories = "6.0"
 jni = { version = "0.21", optional = true }
 ndk-context = { version = "0.1", optional = true }

@@ -76,3 +76,4 @@ impl From<LastFMTrackMethod> for LastFMMethod {
         LastFMMethod::Track(value)
     }
 }
+
