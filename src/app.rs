@@ -1,10 +1,10 @@
 use std::time::Duration;
 
 use crate::prelude::*;
-use dioxus::prelude::*;
 use dioxus_free_icons::{Icon, icons::hi_solid_icons::*};
 use tokio::time::Instant;
 use tokio::time::sleep;
+use uuid::Uuid;
 
 #[derive(Debug, Clone, Routable, PartialEq)]
 #[rustfmt::skip]
@@ -37,20 +37,30 @@ fn SongItems(search: ReadSignal<LastFMApiTrackSearch>) -> Element {
     let items = search.trackmatches.track.iter().map(move |item| {
         let item = item.clone();
         let item_other = item.clone();
+        let item_other2 = item.clone();
 
-        let image = use_resource(move || async move {
-            let coverartarchive = CoverArtArchiveApi::default();
-            let mut player = use_context::<PlayerContext>();
+        let lazy_music_data: Resource<Result<(ImageApi, Uuid)>> = use_resource(move || {
+            let item = item_other2.clone();
+            async move {
+                let coverartarchive = CoverArtArchiveApi::default();
+                let musicbrainz = MusicBrainzApi::default();
+                let mut player = use_context::<PlayerContext>();
 
-            let image = coverartarchive
-                .fetch_image(item.mbid.ok_or(anyhow!("No image!"))?)
-                .await;
+                let track = musicbrainz
+                    .search::<ReleaseApi>(
+                        format!("release:{} artist:{}", item.name, item.artist),
+                        1,
+                        0,
+                    )
+                    .await?;
+                let mbid = track.releases.first().ok_or(anyhow!("No Track found!"))?.id;
 
-            if let Ok(image) = &image {
+                let image = coverartarchive.fetch_image(mbid).await?;
+
                 *player.current_thumb.write() = Some(image.clone());
-            }
 
-            image
+                Ok((image, mbid))
+            }
         });
 
         rsx!(
@@ -72,11 +82,11 @@ fn SongItems(search: ReadSignal<LastFMApiTrackSearch>) -> Element {
                         Ok(())
                     }
                 },
-                if let Some(image) = &*image.read() && let Ok(image) = image {
+                if let Some(item) = &*lazy_music_data.read() && let Ok(item) = item {
                     img {
                         width: 100,
                         height: 100,
-                        src: image.thumbnails.s250.to_string(),
+                        src: item.0.thumbnails.s250.to_string(),
                     }
                 } else {
                     Icon { width: 100, height: 100, icon: HiBeaker }
@@ -86,11 +96,13 @@ fn SongItems(search: ReadSignal<LastFMApiTrackSearch>) -> Element {
                     br {}
                     {format!("Artist: {}", item.artist)}
                     br {}
-                                // {
-                //     item.mbid
-                //         .map(|x| format!("Mbid: {}", x.to_string()))
-                //         .unwrap_or("No mbid found!".to_string())
-                // }
+                    {
+                        if let Some(item) = &*lazy_music_data.read() && let Ok(item) = item {
+                            format!("Mbid: {}", item.1)
+                        } else {
+                            "No Mbid found!".to_string()
+                        }
+                    }
                 }
             }
         )
@@ -199,7 +211,7 @@ fn Home() -> Element {
 
                     oninput: move |event| async move {
                         search_fn.cancel();
-                        search_fn.call(event.value(), 20, 1).await
+                        search_fn.call(event.value(), 10, 1).await
                     },
                 }
             }
