@@ -1,5 +1,7 @@
 # MusicNow
 
+# THIS IS AN EXPERIMENTAL ALOT OF STUFF WILL BE OUTDATED FOR NOW (EVEN THIS README)
+
 ## Note that MusicNow is in early development stages, so expect missing features breakages and similar
 
 ## Why MusicNow?
