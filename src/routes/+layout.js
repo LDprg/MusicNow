@@ -3,3 +3,7 @@
 // See: https://svelte.dev/docs/kit/single-page-apps
 // See: https://v2.tauri.app/start/frontend/sveltekit/ for more info
 export const ssr = false;
+export const prerender = true;
+
+import "@fortawesome/fontawesome-free/css/all.min.css";
+import "./global.css";

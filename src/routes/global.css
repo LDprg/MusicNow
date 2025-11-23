@@ -1,0 +1,36 @@
+html,
+body {
+    height: 100%;
+    width: 100%;
+
+    margin: 0;
+
+    background-color: var(--theme-bg);
+    color: var(--theme-fg);
+
+    font-family: "Fira Code", "Lucida Console";
+    font-size: 16;
+}
+
+:root {
+    /* Primary brand colors */
+    --theme-prim: #7aa2f7;
+    --theme-second: #9d7cd8;
+    --theme-terti: #7dcfff;
+
+    /* Neutrals */
+    --theme-bg: #1a1b26;
+    --theme-bg-dark: #0c0e14;
+    --theme-fg: #c0caf5;
+    --theme-muted: #565f89;
+    --theme-border: #2d3149;
+
+    /* Semantic */
+    --theme-succ: #9ece6a;
+    --theme-warn: #e0af68;
+    --theme-err: #f7768e;
+    --theme-info: #7dcfff;
+
+    /* Interaction */
+    --theme-focus: #394b70;
+}
