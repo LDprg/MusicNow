@@ -5,18 +5,18 @@ body {
 
     margin: 0;
 
-    background-color: var(--theme-bg);
+    background: var(--theme-bg);
     color: var(--theme-fg);
 
     font-family: "Fira Code", "Lucida Console";
-    font-size: 16;
+    font-size: 16px;
 }
 
 :root {
     /* Primary brand colors */
-    --theme-prim: #7aa2f7;
-    --theme-second: #9d7cd8;
-    --theme-terti: #7dcfff;
+    --theme-primary: #7aa2f7;
+    --theme-secondary: #9d7cd8;
+    --theme-tertiary: #7dcfff;
 
     /* Neutrals */
     --theme-bg: #1a1b26;

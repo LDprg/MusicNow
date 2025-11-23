@@ -31,7 +31,7 @@
         padding: 6px 10px;
         margin: 8px;
         background: var(--theme-bg);
-        color: var(--theme-prim);
+        color: var(--theme-primary);
         font-size: 18px;
         border: none;
         cursor: pointer;
