@@ -2,8 +2,11 @@
     import { invoke } from "@tauri-apps/api/core";
 
     let name = $state("");
-    let greetMsg = $state("");
+    let greetMsg = $state("Search for Message");
 
+    /**
+     * @param {Event} event
+     */
     async function greet(event) {
         event.preventDefault();
         greetMsg = await invoke("greet", { name });
@@ -15,6 +18,7 @@
     <!-- svelte-ignore a11y_consider_explicit_label -->
     <button type="submit"><i class="fa fa-search"></i></button>
 </form>
+<!-- Temporary Code -->
 <p>{greetMsg}</p>
 
 <style>
@@ -30,9 +34,6 @@
         padding: 6px;
         margin: 8px 0px 8px 8px;
         font-size: 18px;
-        background: var(--theme-bg);
-        color: var(--theme-fg);
-        border: none;
         flex: 1;
     }
 
@@ -40,14 +41,6 @@
         float: right;
         padding: 6px 10px;
         margin: 8px;
-        background: var(--theme-bg);
-        color: var(--theme-primary);
         font-size: 18px;
-        border: none;
-        cursor: pointer;
-    }
-
-    .search-container button:hover {
-        background: var(--theme-focus);
     }
 </style>

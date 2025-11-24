@@ -40,3 +40,31 @@ body {
     /* Interaction */
     --theme-focus: #394b70;
 }
+
+/* UI definitions */
+input[type="range"] {
+    outline: none;
+    cursor: pointer;
+    accent-color: var(--theme-secondary);
+}
+
+input[type="range"]:hover {
+    accent-color: var(--theme-primary);
+}
+
+input[type="text"] {
+    background: var(--theme-bg);
+    color: var(--theme-fg);
+    border: none;
+}
+
+button {
+    background: var(--theme-bg);
+    color: var(--theme-primary);
+    border: none;
+    cursor: pointer;
+}
+
+button:hover {
+    background: var(--theme-focus);
+}

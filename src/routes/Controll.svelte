@@ -77,13 +77,5 @@
 
     .controll-container .ctrl input[type="range"] {
         width: 100%;
-        outline: none;
-        cursor: pointer;
-        accent-color: var(--theme-secondary);
-        color-scheme: light;
-    }
-
-    .controll-container .ctrl input[type="range"]:hover {
-        accent-color: var(--theme-primary);
     }
 </style>

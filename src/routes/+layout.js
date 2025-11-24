@@ -7,3 +7,23 @@ export const prerender = true;
 
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import "./global.css";
+
+import { warn, debug, trace, info, error } from "@tauri-apps/plugin-log";
+
+/**
+ * @param {'log' | 'debug' | 'info' | 'warn' | 'error'} fnName
+ * @param {(message: string) => Promise<void>} logger
+ */
+function forwardConsole(fnName, logger) {
+    const original = console[fnName];
+    console[fnName] = (message) => {
+        original(message);
+        logger(message);
+    };
+}
+
+forwardConsole("log", trace);
+forwardConsole("debug", debug);
+forwardConsole("info", info);
+forwardConsole("warn", warn);
+forwardConsole("error", error);

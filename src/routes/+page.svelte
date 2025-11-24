@@ -1,60 +1,43 @@
 <script>
-    import { warn, debug, trace, info, error } from "@tauri-apps/plugin-log";
-
-    /**
-     * @param {'log' | 'debug' | 'info' | 'warn' | 'error'} fnName
-     * @param {(message: string) => Promise<void>} logger
-     */
-    function forwardConsole(fnName, logger) {
-        const original = console[fnName];
-        console[fnName] = (message) => {
-            original(message);
-            logger(message);
-        };
-    }
-
-    forwardConsole("log", trace);
-    forwardConsole("debug", debug);
-    forwardConsole("info", info);
-    forwardConsole("warn", warn);
-    forwardConsole("error", error);
-
     import Search from "./Search.svelte";
     import Controll from "./Controll.svelte";
 
     /**
-     * @type {any[string]}
+     * @type {number[]}
      */
     let items = $state([]);
 
-    [...Array(20).keys()].forEach((i) => items.push(i));
+    [...Array(200).keys()].forEach((i) => items.push(i));
 </script>
 
 <main class="container">
     <Search />
 
     <div class="items-container">
+        <div class="items">
+            <div class="icon">
+                <i class="fa fa-radiation"></i>
+            </div>
+            <div class="text">
+                Titel: Nr. -1
+                <br />
+                Artist: Abcadaaaassssssssssssss skkkkkkkkkk
+                <br />
+                Mbid: Aba
+            </div>
+        </div>
         {#each items as item}
             <div class="items">
                 <div class="icon">
                     <i class="fa fa-radiation"></i>
                 </div>
-                <table class="text">
-                    <tbody>
-                        <tr>
-                            <th>Titel: </th>
-                            <th>Nr. {item}</th>
-                        </tr>
-                        <tr>
-                            <th>Artist: </th>
-                            <th>Abcadaaaa</th>
-                        </tr>
-                        <tr>
-                            <th>Mbid: </th>
-                            <th>Abc</th>
-                        </tr>
-                    </tbody>
-                </table>
+                <div class="text">
+                    Titel: Nr. {item}
+                    <br />
+                    Artist: Abcadaaaa
+                    <br />
+                    Mbid: Aba
+                </div>
             </div>
         {/each}
     </div>
@@ -89,12 +72,8 @@
         font-size: 50px;
     }
 
-    .items img {
-        width: 50px;
-        height: 50px;
-    }
-
     .items .text {
+        min-width: 200px;
         margin-left: 8px;
         font-size: 16px;
         text-align: left;
