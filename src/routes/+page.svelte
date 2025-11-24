@@ -27,7 +27,7 @@
      */
     let items = $state([]);
 
-    [...Array(1000).keys()].forEach((i) => items.push(i));
+    [...Array(20).keys()].forEach((i) => items.push(i));
 </script>
 
 <main class="container">
@@ -47,7 +47,7 @@
                         </tr>
                         <tr>
                             <th>Artist: </th>
-                            <th>Abc</th>
+                            <th>Abcadaaaa</th>
                         </tr>
                         <tr>
                             <th>Mbid: </th>
@@ -72,16 +72,20 @@
     .items-container {
         flex: 1;
         overflow: auto;
-        display: grid;
-        grid-template-columns: auto auto auto auto;
+        display: flex;
+        flex-flow: row wrap;
+        align-content: flex-start;
     }
 
     .items {
         margin: 8px;
         display: flex;
+        flex: 1;
+        height: min-content;
     }
 
     .items .icon {
+        align-self: center;
         font-size: 50px;
     }
 
