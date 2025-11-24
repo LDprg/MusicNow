@@ -12,6 +12,7 @@ fn main() {
             // See: https://github.com/DioxusLabs/dioxus/issues/3667
             unsafe {
                 // Disable explicit sync for NVIDIA drivers on Linux when using Way
+                std::env::set_var("__NV_DISABLE_EXPLICIT_SYNC", "1");
                 std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
             }
         }

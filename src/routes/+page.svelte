@@ -20,6 +20,7 @@
     forwardConsole("error", error);
 
     import Search from "./Search.svelte";
+    import Controll from "./Controll.svelte";
 
     /**
      * @type {any[string]}
@@ -34,28 +35,31 @@
 
     <div class="items-container">
         {#each items as item}
-            <div class="items">Item Nr: {item}</div>
+            <div class="items">
+                <div class="icon">
+                    <i class="fa fa-radiation"></i>
+                </div>
+                <table class="text">
+                    <tbody>
+                        <tr>
+                            <th>Titel: </th>
+                            <th>Nr. {item}</th>
+                        </tr>
+                        <tr>
+                            <th>Artist: </th>
+                            <th>Abc</th>
+                        </tr>
+                        <tr>
+                            <th>Mbid: </th>
+                            <th>Abc</th>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         {/each}
     </div>
 
-    <div class="controll-container">
-        <div class="icon">
-            <i class="fa-solid fa-radiation"></i>
-        </div>
-        <div class="text">
-            Song: abc
-            <br />
-            Artist: nc
-            <br />
-            Mbid: abc
-        </div>
-        <div class="ctrl">
-            <div>
-                <i class="fa-solid fa-radiation"></i>
-            </div>
-            <input type="range" />
-        </div>
-    </div>
+    <Controll />
 </main>
 
 <style>
@@ -68,47 +72,27 @@
     .items-container {
         flex: 1;
         overflow: auto;
+        display: grid;
+        grid-template-columns: auto auto auto auto;
     }
 
     .items {
-        margin-bottom: 2px;
-    }
-
-    .controll-container {
-        background: var(--theme-bg-dark);
-        width: 100%;
-        bottom: 0;
+        margin: 8px;
         display: flex;
     }
 
-    .controll-container .icon {
+    .items .icon {
         font-size: 50px;
-        margin: 8px;
     }
 
-    .controll-container .text {
-        margin: 8px;
+    .items img {
+        width: 50px;
+        height: 50px;
     }
 
-    .controll-container .ctrl {
-        align-self: center;
-        margin: 16px;
-        flex: 1;
-    }
-
-    .controll-container .ctrl div {
-        text-align: center;
-        font-size: 18px;
-        margin-bottom: 8px;
-    }
-    .controll-container .ctrl input[type="range"] {
-        width: 100%;
-        outline: none;
-        cursor: pointer;
-        accent-color: var(--theme-secondary);
-    }
-
-    .controll-container .ctrl input[type="range"]:hover {
-        accent-color: var(--theme-primary);
+    .items .text {
+        margin-left: 8px;
+        font-size: 16px;
+        text-align: left;
     }
 </style>
