@@ -1,6 +1,7 @@
 mod lastfm;
 
 use std::error::Error;
+use log::error;
 
 use lastfm::*;
 use tauri::{AppHandle, Manager};
@@ -12,7 +13,9 @@ fn greet(name: &str) -> String {
 
 async fn setup(app: &AppHandle) -> Result<(), Box<dyn Error>> {
     let mut lastfm = LastFM::default();
-    lastfm.login().await;
+    if let Err(err) = lastfm.login(app).await {
+    error!("Error: {:#?}", err);
+    }
     app.manage(lastfm);
     Ok(())
 }
@@ -22,7 +25,7 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(
             tauri_plugin_log::Builder::new()
-                .level(tauri_plugin_log::log::LevelFilter::Trace)
+                .level(tauri_plugin_log::log::LevelFilter::Info)
                 .build(),
         )
         .plugin(tauri_plugin_opener::init())

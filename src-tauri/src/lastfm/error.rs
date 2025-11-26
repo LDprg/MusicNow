@@ -8,6 +8,8 @@ pub enum LastFMError {
     LoginDataMissing,
     #[error("The api returned an error")]
     ApiError(LastFMApiError),
-    #[error("Json parsering failed")]
-    JsonParsingError(#[from] serde_json::Error),
+    #[error("Json parsing failed")]
+    JsonParsingError(serde_json::Error, String),
+    #[error("Open Url/Path failed")]
+    OpenError(#[from] tauri_plugin_opener::Error),
 }
