@@ -26,7 +26,8 @@ body {
 
     /* Neutrals */
     --theme-bg: #1a1b26;
-    --theme-bg-dark: #0c0e14;
+    --theme-bg-dark: #16161e;
+    --theme-bg-darker: #0c0e14;
     --theme-fg: #c0caf5;
     --theme-muted: #565f89;
     --theme-border: #2d3149;

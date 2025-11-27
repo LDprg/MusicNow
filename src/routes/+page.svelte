@@ -3,17 +3,31 @@
     import Controll from "./Controll.svelte";
 
     /**
-     * @type {{title: String, artist: String, mbid: (null | String)}[]}
+     * @typedef {{title: String, artist: String, mbid: (null | String)}} Track
      */
-    let items = $state([]);
+
+    /**
+     * @type {Track[]}
+     */
+    let tracks = $state([]);
+
+    /**
+     * @type {Track | undefined}
+     */
+    let track = $state();
 </script>
 
 <main class="container">
-    <Search bind:searchResults={items} />
+    <Search bind:searchResults={tracks} />
 
     <div class="items-container">
-        {#each items as item}
-            <div class="items">
+        {#each tracks as item}
+            <button
+                class="items"
+                onclick={() => {
+                    track = item;
+                }}
+            >
                 <div class="icon">
                     <i class="fa fa-radiation"></i>
                 </div>
@@ -22,13 +36,18 @@
                     <br />
                     Artist: {item.artist}
                     <br />
-                    Mbid: {item.mbid}
+                    <br />
+                    {#if item.mbid == undefined}
+                        <span class="warn">None</span>
+                    {:else}
+                        {item.mbid}
+                    {/if}
                 </div>
-            </div>
+            </button>
         {/each}
     </div>
 
-    <Controll />
+    <Controll bind:track />
 </main>
 
 <style>
@@ -41,16 +60,18 @@
     .items-container {
         flex: 1;
         overflow: auto;
-        display: flex;
-        flex-flow: row wrap;
-        align-content: flex-start;
+        display: grid;
+        grid-template-columns: repeat(3, auto);
     }
 
     .items {
-        margin: 8px;
+        box-sizing: border-box;
+        margin: 4px;
+        padding: 8px;
         display: flex;
         flex: 1;
-        height: min-content;
+        background: var(--theme-bg-dark);
+        color: var(--theme-fg);
     }
 
     .items .icon {
@@ -59,9 +80,12 @@
     }
 
     .items .text {
-        min-width: 300px;
         margin-left: 8px;
         font-size: 16px;
         text-align: left;
+    }
+
+    .warn {
+        color: var(--theme-warn);
     }
 </style>

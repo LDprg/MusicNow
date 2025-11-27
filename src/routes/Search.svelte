@@ -15,7 +15,7 @@
 
         searchResults = await invoke("search", {
             query: query,
-            limit: 30,
+            limit: 40,
             page: 1,
         });
     }
@@ -31,7 +31,7 @@
 
 <style>
     .search-container {
-        background: var(--theme-bg-dark);
+        background: var(--theme-bg-darker);
         display: flex;
         position: sticky;
         top: 0;

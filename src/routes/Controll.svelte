@@ -1,4 +1,6 @@
-<script module>
+<script>
+    let { track = $bindable() } = $props();
+
     const play = true;
 </script>
 
@@ -7,11 +9,17 @@
         <i class="fa-solid fa-radiation"></i>
     </div>
     <div class="text">
-        Song: abc
-        <br />
-        Artist: nc
-        <br />
-        Mbid: abc
+        {#if track == undefined}
+            Song: -\-
+            <br />
+            Artist: -\-
+        {:else}
+            Song: {track.title}
+            <br />
+            Artist: {track.artist}
+            <!-- <br /> -->
+            <!-- Mbid: {track.mbid} -->
+        {/if}
     </div>
     <div class="ctrl">
         <div class="upper">
@@ -33,7 +41,7 @@
 
 <style>
     .controll-container {
-        background: var(--theme-bg-dark);
+        background: var(--theme-bg-darker);
         width: 100%;
         bottom: 0;
         display: flex;
