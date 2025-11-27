@@ -3,7 +3,7 @@ use std::time::Duration;
 use log::info;
 use md5::{Digest, Md5};
 use serde::{de::DeserializeOwned, Deserialize};
-use tauri::AppHandle;
+use tauri::{AppHandle, Manager};
 use tauri_plugin_http::reqwest;
 
 mod api;
@@ -16,6 +16,8 @@ pub use meta::*;
 use tauri_plugin_opener::OpenerExt;
 use tokio::time::sleep;
 
+use crate::storage::{DataStorage, LastFMStorage};
+
 const LASTFM_URL: &str = "http://www.last.fm";
 const LASTFM_API_URL: &str = "http://ws.audioscrobbler.com/2.0/";
 
@@ -26,12 +28,7 @@ const LASTFM_SESSION_KEY_INTERVAL: Duration = Duration::from_secs(5);
 
 pub struct LastFM {
     client: reqwest::Client,
-    login_data: Option<LoginData>,
-}
-
-pub struct LoginData {
-    username: String,
-    session_key: String,
+    login_data: Option<LastFMStorage>,
 }
 
 impl Default for LastFM {
@@ -154,14 +151,14 @@ impl LastFM {
 
         #[derive(Deserialize)]
         struct SessionWrapper {
-            session : SessionDataStruct,
+            session: SessionDataStruct,
         }
 
         let text = req.text().await.unwrap();
         let session_data = Self::unwrap_api_error::<SessionWrapper>(text)?;
         let session_data = session_data.session;
 
-        self.login_data = Some(LoginData {
+        self.login_data = Some(LastFMStorage {
             session_key: session_data.key,
             username: session_data.name,
         });
@@ -170,6 +167,19 @@ impl LastFM {
     }
 
     pub async fn login(&mut self, app: &AppHandle) -> Result<(), LastFMError> {
+        let data_storage = app.state::<DataStorage>();
+
+        let login_data = data_storage.read_lastfm()?;
+
+        if !login_data.username.is_empty() && !login_data.session_key.is_empty() {
+            info!("Username: {}", login_data.username);
+            info!("SessionKey: {}", login_data.session_key);
+
+            self.login_data = Some(login_data);
+
+            return Ok(());
+        }
+
         let token = self.req_token().await?;
         info!("Token: {}", token);
 
@@ -180,9 +190,7 @@ impl LastFM {
             LASTFM_URL, LASTFM_API_KEY, token
         );
 
-        app.opener()
-            .open_url(url, None::<&str>)
-            .map_err(|err| LastFMError::OpenError(err))?;
+        app.opener().open_url(url, None::<&str>)?;
 
         while let Err(err) = self.fetch_session_key(&token).await {
             match err {
@@ -191,10 +199,15 @@ impl LastFM {
             }
         }
 
-        let login_data = self.login_data.as_ref().ok_or(LastFMError::LoginDataMissing)?;
+        let login_data = self
+            .login_data
+            .as_ref()
+            .ok_or(LastFMError::LoginDataMissing)?;
+
+        data_storage.write_lastfm(login_data)?;
+
         info!("Username: {}", login_data.username);
         info!("SessionKey: {}", login_data.session_key);
-
         Ok(())
     }
 }

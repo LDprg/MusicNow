@@ -1,9 +1,12 @@
 mod lastfm;
+mod storage;
 
-use std::error::Error;
 use log::error;
+use std::error::Error;
 
 use lastfm::*;
+use storage::*;
+
 use tauri::{AppHandle, Manager};
 
 #[tauri::command]
@@ -12,9 +15,12 @@ fn greet(name: &str) -> String {
 }
 
 async fn setup(app: &AppHandle) -> Result<(), Box<dyn Error>> {
+    let data_storage = DataStorage::new(app)?;
+    app.manage(data_storage);
+
     let mut lastfm = LastFM::default();
     if let Err(err) = lastfm.login(app).await {
-    error!("Error: {:#?}", err);
+        error!("Error: {:#?}", err);
     }
     app.manage(lastfm);
     Ok(())

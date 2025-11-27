@@ -1,6 +1,6 @@
 use thiserror::Error;
 
-use crate::lastfm::LastFMApiError;
+use crate::{lastfm::LastFMApiError, storage::error::DataStorageError};
 
 #[derive(Error, Debug)]
 pub enum LastFMError {
@@ -12,4 +12,6 @@ pub enum LastFMError {
     JsonParsingError(serde_json::Error, String),
     #[error("Open Url/Path failed")]
     OpenError(#[from] tauri_plugin_opener::Error),
+    #[error("Data storage error")]
+    DataStorageError(#[from] DataStorageError),
 }
