@@ -113,15 +113,14 @@ impl LastFM {
                 ("format", "json"),
             ])
             .send()
-            .await
-            .unwrap();
+            .await?;
 
         #[derive(Deserialize)]
         struct TokenStruct {
             token: String,
         }
 
-        let text = req.text().await.unwrap();
+        let text = req.text().await?;
         let token = Self::unwrap_api_error::<TokenStruct>(text)?;
 
         Ok(token.token)
@@ -140,8 +139,7 @@ impl LastFM {
                 ("format", "json"),
             ])
             .send()
-            .await
-            .unwrap();
+            .await?;
 
         #[derive(Deserialize)]
         struct SessionDataStruct {
@@ -154,7 +152,7 @@ impl LastFM {
             session: SessionDataStruct,
         }
 
-        let text = req.text().await.unwrap();
+        let text = req.text().await?;
         let session_data = Self::unwrap_api_error::<SessionWrapper>(text)?;
         let session_data = session_data.session;
 
@@ -209,5 +207,27 @@ impl LastFM {
         info!("Username: {}", login_data.username);
         info!("SessionKey: {}", login_data.session_key);
         Ok(())
+    }
+
+    pub async fn search(
+        &self,
+        track: String,
+        limit: usize,
+        page: usize,
+    ) -> Result<LastFMApiTrackSearch, LastFMError> {
+        info!("Requesting Search");
+        let req = self
+            .create_req(LastFMTrackMethod::Search)?
+            .query(&[
+                ("track", track),
+                ("limit", limit.to_string()),
+                ("page", page.to_string()),
+            ])
+            .send()
+            .await?;
+
+        let text = req.text().await?;
+        let session_data = Self::unwrap_api_error::<LastFMApiTrackSearchWrapper>(text)?;
+        Ok(session_data.results)
     }
 }

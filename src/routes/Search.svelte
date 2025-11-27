@@ -1,25 +1,33 @@
-<script module>
+<script>
     import { invoke } from "@tauri-apps/api/core";
 
-    let name = $state("");
-    let greetMsg = $state("Search for Message");
+    let { searchResults = $bindable() } = $props();
+
+    let query = $state("");
 
     /**
      * @param {Event} event
      */
-    async function greet(event) {
+    async function search(event) {
         event.preventDefault();
-        greetMsg = await invoke("greet", { name });
+
+        console.info("Starting Search");
+
+        searchResults = await invoke("search", {
+            query: query,
+            limit: 30,
+            page: 1,
+        });
     }
+
+    $inspect(searchResults);
 </script>
 
-<form class="search-container" onsubmit={greet}>
-    <input type="text" placeholder="Search" bind:value={name} />
+<form class="search-container" onsubmit={search}>
+    <input type="text" placeholder="Search" bind:value={query} />
     <!-- svelte-ignore a11y_consider_explicit_label -->
     <button type="submit"><i class="fa fa-search"></i></button>
 </form>
-<!-- Temporary Code -->
-<p>{greetMsg}</p>
 
 <style>
     .search-container {

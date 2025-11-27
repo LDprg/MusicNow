@@ -18,11 +18,11 @@ function forwardConsole(fnName, logger) {
     const original = console[fnName];
     console[fnName] = (message) => {
         original(message);
-        logger(message);
+        logger(message.toString());
     };
 }
 
-forwardConsole("log", trace);
+forwardConsole("log", trace); // WARN: Problems with svelte $inspect
 forwardConsole("debug", debug);
 forwardConsole("info", info);
 forwardConsole("warn", warn);

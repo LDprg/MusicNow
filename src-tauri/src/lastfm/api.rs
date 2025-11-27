@@ -1,10 +1,9 @@
 use std::fmt::Display;
 
-use strum;
-
 #[derive(Clone, Copy, Debug)]
 pub enum LastFMAuthLevel {
     None,
+    #[allow(dead_code)]
     Session,
 }
 

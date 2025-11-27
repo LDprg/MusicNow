@@ -33,7 +33,7 @@ impl DataStorage {
     ) -> Result<T, DataStorageError> {
         if !path.exists() {
             let mut file = File::create(&path)?;
-            _ = bincode::serde::encode_into_std_write(&T::default(), &mut file, BINCODE_CONFIG)?;
+            _ = bincode::serde::encode_into_std_write(T::default(), &mut file, BINCODE_CONFIG)?;
         }
 
         let mut file = File::open(path)?;
@@ -50,7 +50,7 @@ impl DataStorage {
 
     pub fn write_lastfm(&self, lastfm: &LastFMStorage) -> Result<(), DataStorageError> {
         let mut file = File::create(&self.lastfm_path)?;
-        _ = bincode::serde::encode_into_std_write(&lastfm, &mut file, BINCODE_CONFIG)?;
+        _ = bincode::serde::encode_into_std_write(lastfm, &mut file, BINCODE_CONFIG)?;
         Ok(())
     }
 }

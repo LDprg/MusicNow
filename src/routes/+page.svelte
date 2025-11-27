@@ -3,40 +3,26 @@
     import Controll from "./Controll.svelte";
 
     /**
-     * @type {number[]}
+     * @type {{title: String, artist: String, mbid: (null | String)}[]}
      */
     let items = $state([]);
-
-    [...Array(200).keys()].forEach((i) => items.push(i));
 </script>
 
 <main class="container">
-    <Search />
+    <Search bind:searchResults={items} />
 
     <div class="items-container">
-        <div class="items">
-            <div class="icon">
-                <i class="fa fa-radiation"></i>
-            </div>
-            <div class="text">
-                Titel: Nr. -1
-                <br />
-                Artist: Abcadaaaassssssssssssss skkkkkkkkkk
-                <br />
-                Mbid: Aba
-            </div>
-        </div>
         {#each items as item}
             <div class="items">
                 <div class="icon">
                     <i class="fa fa-radiation"></i>
                 </div>
                 <div class="text">
-                    Titel: Nr. {item}
+                    Titel: {item.title}
                     <br />
-                    Artist: Abcadaaaa
+                    Artist: {item.artist}
                     <br />
-                    Mbid: Aba
+                    Mbid: {item.mbid}
                 </div>
             </div>
         {/each}
@@ -73,7 +59,7 @@
     }
 
     .items .text {
-        min-width: 200px;
+        min-width: 300px;
         margin-left: 8px;
         font-size: 16px;
         text-align: left;
