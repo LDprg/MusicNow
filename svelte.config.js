@@ -3,14 +3,16 @@
 // See: https://svelte.dev/docs/kit/single-page-apps
 // See: https://v2.tauri.app/start/frontend/sveltekit/ for more info
 import adapter from "@sveltejs/adapter-static";
+import preprocess from "svelte-preprocess";
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
-  kit: {
-    adapter: adapter({
-      fallback: "index.html",
-    }),
-  },
+    kit: {
+        adapter: adapter({
+            fallback: "index.html",
+        }),
+    },
+    preprocess: [preprocess()],
 };
 
 export default config;
