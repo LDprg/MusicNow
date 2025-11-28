@@ -19,6 +19,10 @@ repos:
           - id: forbid-submodules
           - id: mixed-line-ending
           - id: trailing-whitespace
+    - repo: https://github.com/JoC0de/pre-commit-prettier
+      rev: "v3.7.1"
+      hooks:
+          - id: prettier
     - repo: local
       hooks:
           - id: cargo-fmt
@@ -27,10 +31,4 @@ repos:
             entry: bash -c "cd src-tauri && cargo fmt"
             language: system
             types: [rust]
-            pass_filenames: false
-          - id: bun-fmt
-            name: bun fmt
-            entry: bun fmt
-            language: system
-            types: [svelte, javascript, html, css, json, yaml]
             pass_filenames: false
