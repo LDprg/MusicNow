@@ -35,10 +35,17 @@ impl Default for Soundcloud {
 }
 
 impl Soundcloud {
-    fn create_req(&self, path: &str) -> reqwest::RequestBuilder {
-        self.client
-            .get(format!("{}{}", SC_API_URL, path))
-            .query(&[("client_id", &self.client_id)])
+    fn create_req(&self, path: &str) -> Result<reqwest::RequestBuilder, SoundcloudError> {
+        if let Some(client_id) = &self.client_id {
+            let req = self
+                .client
+                .get(format!("{}{}", SC_API_URL, path))
+                .query(&[("client_id", &client_id)]);
+
+            Ok(req)
+        } else {
+            Err(SoundcloudError::LoginDataMissing)
+        }
     }
 
     fn unwrap_api_error<T: DeserializeOwned>(text: String) -> Result<T, SoundcloudError> {
@@ -103,7 +110,7 @@ impl Soundcloud {
 
         info!("Soundcloud Search");
         let resp = self
-            .create_req("/search/tracks")
+            .create_req("/search/tracks")?
             .query(&[
                 ("q", query),
                 ("limit", limit.to_string()),
