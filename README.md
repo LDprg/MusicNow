@@ -2,6 +2,8 @@
 
 # THIS IS AN EXPERIMENTAL TAURI VERSION MOST FEATURES ARE MISSING OR BROKEN! THIS IS TESTING ONLY!
 
+# THIS WILL REPLACE THE MAIN BRANCH WHEN READ
+
 ## Note that MusicNow is in early development stages, so expect missing features breakages and similar
 
 ## Why MusicNow?
@@ -19,7 +21,7 @@ MusicNow features:
 
 ## How to build
 
-This project uses `bun` for the frontend build using `bun run tauri dev` or for android `bun run tauri android dev`. For more information see the tauri docs.
+This project uses `bun` for the frontend. First install js dependencies with `bun install` (the build won't work without). Build using `bun run tauri dev` or for android `bun run tauri android dev`. For more information see the tauri docs.
 
 ## Where does the music come from?
 

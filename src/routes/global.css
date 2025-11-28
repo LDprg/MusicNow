@@ -14,7 +14,7 @@ body {
     background: var(--theme-bg);
     color: var(--theme-fg);
 
-    font-family: "Fira Code", "Lucida Console";
+    font-family: "Fira Code", system-ui;
     font-size: 16px;
 }
 

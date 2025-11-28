@@ -1,6 +1,6 @@
 use std::{fs::File, path::PathBuf};
 
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use serde::{Deserialize, Serialize, de::DeserializeOwned};
 
 pub mod error;
 use error::*;

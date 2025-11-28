@@ -3,7 +3,7 @@ name = "musicnow"
 version = "0.1.0"
 description = "A Tauri App"
 authors = ["you"]
-edition = "2021"
+edition = "2024"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -23,7 +23,13 @@ tauri-plugin-opener = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tauri-plugin-log = "2"
-tauri-plugin-http = { version = "2.5.4", features = ["brotli", "deflate", "gzip", "json", "zstd"] }
+tauri-plugin-http = { version = "2.5.4", features = [
+    "brotli",
+    "deflate",
+    "gzip",
+    "json",
+    "zstd",
+] }
 strum = { version = "0.27.2", features = ["derive"] }
 md-5 = "0.10.6"
 base16ct = { version = "0.3.0", features = ["alloc"] }
@@ -32,3 +38,5 @@ log = "0.4.28"
 tokio = { version = "1.48.0", features = ["time"] }
 bincode = { version = "2.0.1", features = ["serde"] }
 uuid = { version = "1.18.1", features = ["serde"] }
+regex = "1.12.2"
+scraper = "0.24.0"

@@ -16,7 +16,7 @@
         searchResults = await invoke("search", {
             query: query,
             limit: 40,
-            page: 1,
+            offset: 0,
         });
     }
 

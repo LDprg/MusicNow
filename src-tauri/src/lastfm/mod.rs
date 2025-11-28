@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use log::info;
 use md5::{Digest, Md5};
-use serde::{de::DeserializeOwned, Deserialize};
+use serde::{Deserialize, de::DeserializeOwned};
 use tauri::{AppHandle, Manager};
 use tauri_plugin_http::reqwest;
 
@@ -121,7 +121,7 @@ impl LastFM {
         }
 
         let text = req.text().await?;
-        let token = Self::unwrap_api_error::<TokenStruct>(text)?;
+        let token: TokenStruct = Self::unwrap_api_error(text)?;
 
         Ok(token.token)
     }
@@ -153,7 +153,7 @@ impl LastFM {
         }
 
         let text = req.text().await?;
-        let session_data = Self::unwrap_api_error::<SessionWrapper>(text)?;
+        let session_data: SessionWrapper = Self::unwrap_api_error(text)?;
         let session_data = session_data.session;
 
         self.login_data = Some(LastFMStorage {
@@ -209,13 +209,16 @@ impl LastFM {
         Ok(())
     }
 
+    #[allow(dead_code)]
     pub async fn search(
         &self,
         track: String,
         limit: usize,
-        page: usize,
+        offset: usize,
     ) -> Result<LastFMApiTrackSearch, LastFMError> {
-        info!("Requesting Search");
+        let page = offset + 1;
+
+        info!("LastFM Search");
         let req = self
             .create_req(LastFMTrackMethod::Search)?
             .query(&[
@@ -227,7 +230,7 @@ impl LastFM {
             .await?;
 
         let text = req.text().await?;
-        let session_data = Self::unwrap_api_error::<LastFMApiTrackSearchWrapper>(text)?;
+        let session_data: LastFMApiTrackSearchWrapper = Self::unwrap_api_error(text)?;
         Ok(session_data.results)
     }
 }
