@@ -2399,6 +2399,7 @@ version = "0.1.0"
 dependencies = [
  "base16ct",
  "bincode",
+ "bytes",
  "log",
  "md-5",
  "regex",

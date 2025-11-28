@@ -54,7 +54,7 @@ async fn search(
             item.collection
                 .into_iter()
                 .filter_map(|track| {
-                    if let SoundcloudApiSearchElement::Track(track) = track {
+                    if let soundcloud::meta::SearchElement::Track(track) = track {
                         let artist = if let Some(publisher_metadata) = track.publisher_metadata
                             && let Some(artist) = publisher_metadata.artist
                         {
@@ -67,7 +67,7 @@ async fn search(
 
                         Some(SearchApi {
                             title: track.title,
-                            artist: artist,
+                            artist,
                             mbid: Some(track.urn),
                         })
                     } else {
