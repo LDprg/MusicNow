@@ -95,11 +95,12 @@ async fn setup(app: &AppHandle) -> Result<(), Box<dyn Error>> {
     let audio_player = AudioPlayer::default();
     app.manage(audio_player);
 
-    let mut lastfm = LastFM::default();
-    if let Err(err) = lastfm.login(app).await {
-        error!("Error: {:#?}", err);
-    }
-    app.manage(lastfm);
+    // TODO: LastFM Login seems broken on android
+    // let mut lastfm = LastFM::default();
+    // if let Err(err) = lastfm.login(app).await {
+    //     error!("Error: {:#?}", err);
+    // }
+    // app.manage(lastfm);
 
     let mut soundcloud = Soundcloud::default();
     if let Err(err) = soundcloud.login_anonymous().await {

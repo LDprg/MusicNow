@@ -15,5 +15,5 @@ pub enum AudioError {
     #[error("Soundcloud error")]
     SoundcloudError(#[from] SoundcloudError),
     #[error("M3U8 error")]
-    M3U8Error(String),
+    M3u8Error(String),
 }

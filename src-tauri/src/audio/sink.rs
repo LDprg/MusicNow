@@ -1,15 +1,13 @@
-use std::sync::Arc;
 use std::{fmt, time::Duration};
 
 use rodio::{Decoder, OutputStream, OutputStreamBuilder, Sink};
 
-use super::*;
+use crate::audio::stream::AudioStreamer;
 
-#[derive(Clone)]
 pub struct AudioSink {
     #[allow(dead_code)]
-    stream_handle: Arc<OutputStream>,
-    sink: Arc<Sink>,
+    stream_handle: OutputStream,
+    sink: Sink,
 }
 
 #[allow(dead_code)]
@@ -57,8 +55,8 @@ impl AudioSink {
 
 impl Default for AudioSink {
     fn default() -> Self {
-        let stream_handle = Arc::new(OutputStreamBuilder::open_default_stream().unwrap());
-        let sink = Arc::new(Sink::connect_new(stream_handle.mixer()));
+        let stream_handle = OutputStreamBuilder::open_default_stream().unwrap();
+        let sink = Sink::connect_new(stream_handle.mixer());
 
         sink.set_volume(0.1);
 
