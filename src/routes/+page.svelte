@@ -2,6 +2,8 @@
     import Search from "./Search.svelte";
     import Controll from "./Controll.svelte";
 
+    import { invoke } from "@tauri-apps/api/core";
+
     /**
      * @typedef {{title: String, artist: String, mbid: (null | String)}} Track
      */
@@ -15,6 +17,21 @@
      * @type {Track | undefined}
      */
     let track = $state();
+
+    /**
+     * @param {Event} event
+     */
+    async function play(event) {
+        event.preventDefault();
+
+        if (track != undefined && track.mbid != null) {
+            console.info("Playing song");
+
+            await invoke("play", {
+                trackId: Number.parseInt(track.mbid),
+            });
+        }
+    }
 </script>
 
 <main class="container">
@@ -24,8 +41,9 @@
         {#each tracks as item}
             <button
                 class="items"
-                onclick={() => {
+                onclick={(event) => {
                     track = item;
+                    play(event);
                 }}
             >
                 <div class="icon">

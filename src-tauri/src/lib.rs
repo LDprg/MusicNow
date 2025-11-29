@@ -1,11 +1,13 @@
+mod audio;
 mod lastfm;
 mod soundcloud;
 mod storage;
 
-use log::error;
+use log::{error, info};
 use serde::Serialize;
 use std::error::Error;
 
+use audio::*;
 use lastfm::*;
 use soundcloud::*;
 use storage::*;
@@ -13,8 +15,14 @@ use storage::*;
 use tauri::{AppHandle, Manager, State};
 
 #[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
+async fn play(
+    soundcloud: State<'_, Soundcloud>,
+    audio_player: State<'_, AudioPlayer>,
+    track_id: u64,
+) -> Result<(), ()> {
+    info!("Playing rust");
+    audio_player.play(soundcloud, track_id).await.unwrap();
+    Ok(())
 }
 
 #[derive(Serialize)]
@@ -68,7 +76,7 @@ async fn search(
                         Some(SearchApi {
                             title: track.title,
                             artist,
-                            mbid: Some(track.urn),
+                            mbid: Some(track.id.to_string()),
                         })
                     } else {
                         error!("Non Track in Soundcloud Track Search: {:#?}", track);
@@ -83,6 +91,9 @@ async fn search(
 async fn setup(app: &AppHandle) -> Result<(), Box<dyn Error>> {
     let data_storage = DataStorage::new(app)?;
     app.manage(data_storage);
+
+    let audio_player = AudioPlayer::default();
+    app.manage(audio_player);
 
     let mut lastfm = LastFM::default();
     if let Err(err) = lastfm.login(app).await {
@@ -109,7 +120,7 @@ pub fn run() {
         )
         .plugin(tauri_plugin_opener::init())
         .setup(|app| tauri::async_runtime::block_on(setup(app.handle())))
-        .invoke_handler(tauri::generate_handler![greet, search])
+        .invoke_handler(tauri::generate_handler![play, search])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
