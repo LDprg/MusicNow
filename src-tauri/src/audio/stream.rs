@@ -52,7 +52,10 @@ impl AudioStreamer {
 
 impl Read for AudioStreamer {
     fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
-        let mut inner = self.inner.lock().unwrap();
+        let mut inner = self
+            .inner
+            .lock()
+            .map_err(|_| std::io::ErrorKind::Deadlock)?;
 
         while let Ok(data) = inner.rx.try_recv() {
             inner.buffer.extend(data);
@@ -75,7 +78,10 @@ impl Read for AudioStreamer {
 // TODO: Seeking only works within the Buffer
 impl Seek for AudioStreamer {
     fn seek(&mut self, pos: SeekFrom) -> std::io::Result<u64> {
-        let mut inner = self.inner.lock().unwrap();
+        let mut inner = self
+            .inner
+            .lock()
+            .map_err(|_| std::io::ErrorKind::Deadlock)?;
         let new_pos = match pos {
             SeekFrom::Start(off) => off as i64,
             SeekFrom::End(off) => inner.buffer.len() as i64 + off,

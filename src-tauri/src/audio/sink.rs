@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use rodio::{Decoder, OutputStream, OutputStreamBuilder, Sink};
 
-use crate::audio::stream::AudioStreamer;
+use crate::audio::{error::AudioError, stream::AudioStreamer};
 
 pub struct AudioSink {
     #[allow(dead_code)]
@@ -10,14 +10,29 @@ pub struct AudioSink {
     sink: Sink,
 }
 
+impl Default for AudioSink {
+    fn default() -> Self {
+        let stream_handle = OutputStreamBuilder::open_default_stream().unwrap();
+        let sink = Sink::connect_new(stream_handle.mixer());
+
+        sink.set_volume(0.1);
+
+        Self {
+            stream_handle,
+            sink,
+        }
+    }
+}
+
 #[allow(dead_code)]
 impl AudioSink {
-    pub fn play(&self, stream: AudioStreamer) {
-        let source = Decoder::try_from(stream).expect("Decoding audio failed!");
+    pub fn play(&self, stream: AudioStreamer) -> Result<(), AudioError> {
+        let source = Decoder::try_from(stream)?;
         self.sink.clear();
         self.sink.play();
 
         self.sink.append(source);
+        Ok(())
     }
 
     pub fn pause(&self) {
@@ -50,19 +65,5 @@ impl AudioSink {
 
     pub fn sleep(&self) {
         self.sink.sleep_until_end();
-    }
-}
-
-impl Default for AudioSink {
-    fn default() -> Self {
-        let stream_handle = OutputStreamBuilder::open_default_stream().unwrap();
-        let sink = Sink::connect_new(stream_handle.mixer());
-
-        sink.set_volume(0.1);
-
-        Self {
-            stream_handle,
-            sink,
-        }
     }
 }

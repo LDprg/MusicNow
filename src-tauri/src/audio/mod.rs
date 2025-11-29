@@ -18,7 +18,7 @@ use crate::{
     soundcloud::{Soundcloud, meta},
 };
 
-type SinkFunc = Box<dyn FnOnce(&AudioSink) + Send + 'static>;
+type SinkFunc = Box<dyn FnOnce(&AudioSink) -> Result<(), AudioError> + Send + 'static>;
 
 #[derive(Debug)]
 pub struct AudioPlayer {
@@ -36,7 +36,6 @@ impl Default for AudioPlayer {
 }
 
 impl AudioPlayer {
-    #[allow(dead_code)]
     pub async fn play(
         &self,
         soundcloud: State<'_, Soundcloud>,
@@ -88,7 +87,8 @@ impl AudioPlayer {
                 info!("Starting audio");
                 let stream_task = stream.clone();
                 tx.send(Box::new(move |sink| {
-                    sink.play(stream_task);
+                    sink.play(stream_task)?;
+                    Ok(())
                 }))
                 .unwrap();
 
@@ -122,6 +122,33 @@ impl AudioPlayer {
 
         Ok(())
     }
+
+    pub fn pause(&self) {
+        self.tx
+            .send(Box::new(move |sink| {
+                sink.pause();
+                Ok(())
+            }))
+            .unwrap();
+    }
+
+    pub fn resume(&self) {
+        self.tx
+            .send(Box::new(move |sink| {
+                sink.resume();
+                Ok(())
+            }))
+            .unwrap();
+    }
+
+    pub fn set_volume(&self, volume: f64) {
+        self.tx
+            .send(Box::new(move |sink| {
+                sink.set_volume(volume / 100.0);
+                Ok(())
+            }))
+            .unwrap();
+    }
 }
 
 fn audio_service(rx: mpsc::Receiver<SinkFunc>) {
@@ -129,8 +156,12 @@ fn audio_service(rx: mpsc::Receiver<SinkFunc>) {
 
     loop {
         match rx.recv() {
-            Ok(cmd) => cmd(&sink),
-            Err(err) => unreachable!("Audio RX Error: {}", err),
+            Ok(cmd) => {
+                if let Err(err) = cmd(&sink) {
+                    error!("Audio Thread Error: {:#?}", err);
+                }
+            }
+            Err(err) => unreachable!("Audio Thread RX Error: {}", err),
         }
     }
 }

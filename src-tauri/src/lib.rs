@@ -27,6 +27,21 @@ async fn play(
         .map_err(|err| error!("Error in AudioPlayer play: {:#?}", err))
 }
 
+#[tauri::command]
+fn pause(audio_player: State<'_, AudioPlayer>) {
+    audio_player.pause();
+}
+
+#[tauri::command]
+fn resume(audio_player: State<'_, AudioPlayer>) {
+    audio_player.resume();
+}
+
+#[tauri::command]
+fn set_volume(audio_player: State<'_, AudioPlayer>, volume: f64) {
+    audio_player.set_volume(volume);
+}
+
 #[derive(Serialize)]
 struct SearchApi {
     title: String,
@@ -123,7 +138,9 @@ pub fn run() {
         )
         .plugin(tauri_plugin_opener::init())
         .setup(|app| tauri::async_runtime::block_on(setup(app.handle())))
-        .invoke_handler(tauri::generate_handler![play, search])
+        .invoke_handler(tauri::generate_handler![
+            play, pause, resume, set_volume, search
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
