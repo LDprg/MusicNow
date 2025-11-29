@@ -8,7 +8,7 @@ use serde::Serialize;
 use std::error::Error;
 
 use audio::*;
-use lastfm::*;
+// use lastfm::*;
 use soundcloud::*;
 use storage::*;
 
@@ -21,8 +21,10 @@ async fn play(
     track_id: u64,
 ) -> Result<(), ()> {
     info!("Playing rust");
-    audio_player.play(soundcloud, track_id).await.unwrap();
-    Ok(())
+    audio_player
+        .play(soundcloud, track_id)
+        .await
+        .map_err(|err| error!("Error in AudioPlayer play: {:#?}", err))
 }
 
 #[derive(Serialize)]

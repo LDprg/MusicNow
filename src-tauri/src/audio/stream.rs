@@ -1,9 +1,8 @@
-// TODO: Rewrite ALL
+// TODO: Rewrite this (seeking doesn't work at all)
 use log::info;
 use rodio::Decoder;
 use rodio::decoder::DecoderError;
 use std::{
-    fmt,
     io::{self, Read, Seek, SeekFrom},
     sync::{
         Arc, Mutex,
@@ -99,11 +98,5 @@ impl TryFrom<AudioStreamer> for Decoder<AudioStreamer> {
 
     fn try_from(data: AudioStreamer) -> Result<Self, Self::Error> {
         Self::new(data)
-    }
-}
-
-impl fmt::Debug for AudioStreamer {
-    fn fmt(&self, _: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
-        Ok(())
     }
 }

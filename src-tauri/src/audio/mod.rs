@@ -1,9 +1,5 @@
 // TODO: Rewrite all of the audio backend
-use std::{
-    error::Error,
-    sync::{Arc, mpsc},
-    thread::JoinHandle,
-};
+use std::{error::Error, sync::mpsc};
 
 use bytes::Bytes;
 use log::{error, info, warn};
@@ -22,20 +18,20 @@ use crate::{
     soundcloud::{Soundcloud, meta},
 };
 
-type RawFunc = Box<dyn Fn(Arc<AudioSink>) + Send + 'static>;
+type SinkFunc = Box<dyn FnOnce(&AudioSink) + Send + 'static>;
 
 #[derive(Debug)]
 pub struct AudioPlayer {
-    audio_thread: JoinHandle<()>,
-    tx: mpsc::Sender<RawFunc>,
+    tx: mpsc::Sender<SinkFunc>,
 }
 
 impl Default for AudioPlayer {
     fn default() -> Self {
         let (tx, rx) = mpsc::channel();
-        let audio_thread = std::thread::spawn(move || audio_service(rx));
 
-        Self { audio_thread, tx }
+        std::thread::spawn(move || audio_service(rx));
+
+        Self { tx }
     }
 }
 
@@ -91,9 +87,8 @@ impl AudioPlayer {
 
                 info!("Starting audio");
                 let stream_task = stream.clone();
-                tx.send(Box::new(move |sink: Arc<AudioSink>| {
-                    let stream = stream_task.clone();
-                    sink.play(stream);
+                tx.send(Box::new(move |sink| {
+                    sink.play(stream_task);
                 }))
                 .unwrap();
 
@@ -129,10 +124,13 @@ impl AudioPlayer {
     }
 }
 
-fn audio_service(rx: mpsc::Receiver<RawFunc>) {
-    let sink = Arc::new(AudioSink::default());
+fn audio_service(rx: mpsc::Receiver<SinkFunc>) {
+    let sink = AudioSink::default();
 
-    while let Ok(cmd) = rx.recv() {
-        cmd(sink.clone());
+    loop {
+        match rx.recv() {
+            Ok(cmd) => cmd(&sink),
+            Err(err) => unreachable!("Audio RX Error: {}", err),
+        }
     }
 }

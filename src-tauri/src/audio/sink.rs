@@ -1,4 +1,4 @@
-use std::{fmt, time::Duration};
+use std::time::Duration;
 
 use rodio::{Decoder, OutputStream, OutputStreamBuilder, Sink};
 
@@ -64,11 +64,5 @@ impl Default for AudioSink {
             stream_handle,
             sink,
         }
-    }
-}
-
-impl fmt::Debug for AudioSink {
-    fn fmt(&self, _: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
-        Ok(())
     }
 }

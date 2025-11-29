@@ -7,6 +7,7 @@ repos:
           - id: check-illegal-windows-names
           - id: check-merge-conflict
           - id: check-shebang-scripts-are-executable
+            exclude: ^.*\.rs$
           - id: check-symlinks
           - id: check-toml
           - id: check-vcs-permalinks
