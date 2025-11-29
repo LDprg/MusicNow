@@ -1,9 +1,5 @@
 # MusicNow
 
-# THIS IS AN EXPERIMENTAL TAURI VERSION MOST FEATURES ARE MISSING OR BROKEN! THIS IS TESTING ONLY!
-
-# THIS WILL REPLACE THE MAIN BRANCH WHEN READ
-
 ## Note that MusicNow is in early development stages, so expect missing features breakages and similar
 
 ## Why MusicNow?
