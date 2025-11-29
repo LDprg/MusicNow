@@ -1,31 +1,34 @@
 repos:
-  - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v6.0.0
-    hooks:
-      - id: check-case-conflict
-      - id: check-executables-have-shebangs
-      - id: check-illegal-windows-names
-      - id: check-json
-      - id: check-merge-conflict
-      - id: check-shebang-scripts-are-executable
-      - id: check-symlinks
-      - id: check-toml
-      - id: check-vcs-permalinks
-      - id: check-xml
-      - id: check-yaml
-      - id: destroyed-symlinks
-      - id: detect-private-key
-      - id: end-of-file-fixer
-        exclude: \.rs$
-      - id: fix-byte-order-marker
-      - id: forbid-submodules
-      - id: mixed-line-ending
-      - id: trailing-whitespace
-  - repo: local
-    hooks:
-      - id: dx-fmt
-        name: dx fmt
-        entry: dx fmt
-        language: system
-        types: [rust]
-        pass_filenames: false
+    - repo: https://github.com/pre-commit/pre-commit-hooks
+      rev: v6.0.0
+      hooks:
+          - id: check-case-conflict
+          - id: check-executables-have-shebangs
+          - id: check-illegal-windows-names
+          - id: check-merge-conflict
+          - id: check-shebang-scripts-are-executable
+          - id: check-symlinks
+          - id: check-toml
+          - id: check-vcs-permalinks
+          - id: check-xml
+          - id: check-yaml
+          - id: destroyed-symlinks
+          - id: detect-private-key
+          - id: end-of-file-fixer
+          - id: fix-byte-order-marker
+          - id: forbid-submodules
+          - id: mixed-line-ending
+          - id: trailing-whitespace
+    - repo: https://github.com/JoC0de/pre-commit-prettier
+      rev: "v3.7.1"
+      hooks:
+          - id: prettier
+    - repo: local
+      hooks:
+          - id: cargo-fmt
+            name: cargo fmt
+            files: ^src-tauri/
+            entry: bash -c "cd src-tauri && cargo fmt"
+            language: system
+            types: [rust]
+            pass_filenames: false

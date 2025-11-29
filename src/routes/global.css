@@ -1,0 +1,71 @@
+html {
+    height: 100%;
+    width: 100%;
+
+    margin: 0;
+}
+
+body {
+    height: 100%;
+    width: 100%;
+
+    margin: 0;
+
+    background: var(--theme-bg);
+    color: var(--theme-fg);
+
+    font-family: "Fira Code", system-ui;
+    font-size: 16px;
+}
+
+:root {
+    /* Primary brand colors */
+    --theme-primary: #7aa2f7;
+    --theme-secondary: #9d7cd8;
+    --theme-tertiary: #7dcfff;
+
+    /* Neutrals */
+    --theme-bg: #1a1b26;
+    --theme-bg-dark: #16161e;
+    --theme-bg-darker: #0c0e14;
+    --theme-fg: #c0caf5;
+    --theme-muted: #565f89;
+    --theme-border: #2d3149;
+
+    /* Semantic */
+    --theme-succ: #9ece6a;
+    --theme-warn: #e0af68;
+    --theme-err: #f7768e;
+    --theme-info: #7dcfff;
+
+    /* Interaction */
+    --theme-focus: #394b70;
+}
+
+/* UI definitions */
+input[type="range"] {
+    outline: none;
+    cursor: pointer;
+    accent-color: var(--theme-secondary);
+}
+
+input[type="range"]:hover {
+    accent-color: var(--theme-primary);
+}
+
+input[type="text"] {
+    background: var(--theme-bg);
+    color: var(--theme-fg);
+    border: none;
+}
+
+button {
+    background: var(--theme-bg);
+    color: var(--theme-primary);
+    border: none;
+    cursor: pointer;
+}
+
+button:hover {
+    background: var(--theme-focus);
+}
