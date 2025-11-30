@@ -1,4 +1,5 @@
 mod audio;
+mod event;
 mod lastfm;
 mod soundcloud;
 mod storage;
@@ -9,6 +10,7 @@ use std::error::Error;
 
 use audio::*;
 // use lastfm::*;
+use event::*;
 use soundcloud::*;
 use storage::*;
 
@@ -16,34 +18,42 @@ use tauri::{AppHandle, Manager, State};
 
 #[tauri::command]
 async fn play(
+    app: AppHandle,
     soundcloud: State<'_, Soundcloud>,
     audio_player: State<'_, AudioPlayer>,
     track_id: u64,
 ) -> Result<(), ()> {
     info!("Playing rust");
-    audio_player
+    let res = audio_player
         .play(soundcloud, track_id)
         .await
-        .map_err(|err| error!("Error in AudioPlayer play: {:#?}", err))
+        .map_err(|err| error!("Error in AudioPlayer play: {:#?}", err));
+    app.event_play_status().await;
+    res
 }
 
 #[tauri::command]
-fn pause(audio_player: State<'_, AudioPlayer>) {
+async fn pause(app: AppHandle, audio_player: State<'_, AudioPlayer>) -> Result<(), ()> {
     audio_player.pause();
+    app.event_play_status().await;
+    Ok(())
 }
 
 #[tauri::command]
-fn resume(audio_player: State<'_, AudioPlayer>) {
+async fn resume(app: AppHandle, audio_player: State<'_, AudioPlayer>) -> Result<(), ()> {
     audio_player.resume();
+    app.event_play_status().await;
+    Ok(())
 }
 
 #[tauri::command]
-async fn toggle_play(audio_player: State<'_, AudioPlayer>) -> Result<(), ()> {
+async fn toggle_play(app: AppHandle, audio_player: State<'_, AudioPlayer>) -> Result<(), ()> {
     if audio_player.is_playing().await {
         audio_player.pause();
     } else {
         audio_player.resume();
     }
+    app.event_play_status().await;
     Ok(())
 }
 
@@ -55,8 +65,14 @@ async fn is_playing(audio_player: State<'_, AudioPlayer>) -> Result<bool, ()> {
 }
 
 #[tauri::command]
-fn set_volume(audio_player: State<'_, AudioPlayer>, volume: f64) {
+async fn set_volume(
+    app: AppHandle,
+    audio_player: State<'_, AudioPlayer>,
+    volume: f64,
+) -> Result<(), ()> {
     audio_player.set_volume(volume);
+    app.event_volume().await;
+    Ok(())
 }
 
 #[tauri::command]

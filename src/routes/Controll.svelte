@@ -1,35 +1,21 @@
 <script>
     import { invoke } from "@tauri-apps/api/core";
+    import { listen } from "@tauri-apps/api/event";
 
     let { track } = $props();
 
     let play = $state(true);
     let volume = $state(50);
 
-    /**
-     * @type {Promise<void> | null}
-     * @brief Syncs date with backend. Ensures only one running sync at the time
-     * @todo This is very bad switch to two way implemenation
-     */
-    let syncFn = null;
-    async function syncData() {
-        if (syncFn) return syncFn;
+    listen("volume", (payload) => {
+        volume = Math.round(payload.payload * 10) / 10;
+    });
+    invoke("get_volume").then((vol) => (volume = Math.round(vol * 10) / 10));
 
-        syncFn = (async () => {
-            try {
-                let vol = await invoke("get_volume");
-                volume = Math.round(vol * 10) / 10; // Round to prevent unnessary reloading
-
-                play = await invoke("is_playing");
-            } finally {
-                syncFn = null;
-            }
-        })();
-
-        return syncFn;
-    }
-
-    syncData();
+    listen("play_state", (payload) => {
+        play = payload.payload;
+    });
+    invoke("is_playing").then((state) => (play = state));
 
     /**
      * @param {Event} event
@@ -38,7 +24,6 @@
         event.preventDefault();
 
         await invoke("toggle_play");
-        await syncData();
     }
 
     /**
@@ -48,11 +33,7 @@
         event.preventDefault();
 
         await invoke("set_volume", { volume: volume });
-        await syncData();
     }
-
-    $inspect(volume);
-    $inspect(play);
 </script>
 
 <div class="controll-container">
