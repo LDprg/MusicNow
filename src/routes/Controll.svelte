@@ -11,10 +11,10 @@
      */
     const timePrecision = 100;
 
-    let play = $state(true);
+    let play = $state(false);
     let volume = $state(0);
     let progress = new Tween(0, { easing: cubicOut });
-    let duration = $state(0);
+    let duration = $state(100);
 
     listen("volume", (payload) => {
         volume = Math.round(payload.payload * 10) / 10;

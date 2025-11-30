@@ -28,6 +28,7 @@ async fn play(
         .play(soundcloud, track_id)
         .await
         .map_err(|err| error!("Error in AudioPlayer play: {:#?}", err));
+    app.event_play_status().await;
     app.emit("play_state", true).unwrap();
     res
 }
