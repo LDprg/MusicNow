@@ -1,11 +1,20 @@
 <script>
     import { invoke } from "@tauri-apps/api/core";
     import { listen } from "@tauri-apps/api/event";
+    import { cubicOut } from "svelte/easing";
+    import { Tween } from "svelte/motion";
 
     let { track } = $props();
 
+    /**
+     * @brief Time precision in ms
+     */
+    const timePrecision = 100;
+
     let play = $state(true);
-    let volume = $state(50);
+    let volume = $state(0);
+    let progress = new Tween(0, { easing: cubicOut });
+    let duration = $state(0);
 
     listen("volume", (payload) => {
         volume = Math.round(payload.payload * 10) / 10;
@@ -16,6 +25,20 @@
         play = payload.payload;
     });
     invoke("is_playing").then((state) => (play = state));
+
+    listen("duration", (payload) => {
+        duration = payload.payload / timePrecision;
+    });
+
+    listen("progress", (payload) => {
+        progress.set(payload.payload / timePrecision);
+    });
+
+    setInterval(() => {
+        if (play) {
+            progress.target += 1;
+        }
+    }, timePrecision);
 
     /**
      * @param {Event} event
@@ -34,6 +57,8 @@
 
         await invoke("set_volume", { volume: volume });
     }
+
+    $inspect(play);
 </script>
 
 <div class="controll-container">
@@ -77,7 +102,13 @@
                 />
             </div>
         </div>
-        <input type="range" min="0" max="10020" value="5000" disabled />
+        <input
+            type="range"
+            min="0"
+            max={duration}
+            bind:value={progress.current}
+            disabled
+        />
     </div>
 </div>
 

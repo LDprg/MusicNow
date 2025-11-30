@@ -14,7 +14,7 @@ use event::*;
 use soundcloud::*;
 use storage::*;
 
-use tauri::{AppHandle, Manager, State};
+use tauri::{AppHandle, Emitter, Manager, State};
 
 #[tauri::command]
 async fn play(
@@ -28,7 +28,7 @@ async fn play(
         .play(soundcloud, track_id)
         .await
         .map_err(|err| error!("Error in AudioPlayer play: {:#?}", err));
-    app.event_play_status().await;
+    app.emit("play_state", true).unwrap();
     res
 }
 
@@ -78,6 +78,16 @@ async fn set_volume(
 #[tauri::command]
 async fn get_volume(audio_player: State<'_, AudioPlayer>) -> Result<f64, ()> {
     Ok(audio_player.get_volume().await)
+}
+
+#[tauri::command]
+async fn get_duration(audio_player: State<'_, AudioPlayer>) -> Result<u64, ()> {
+    Ok(audio_player.get_duration().await.as_millis() as u64)
+}
+
+#[tauri::command]
+async fn get_progress(audio_player: State<'_, AudioPlayer>) -> Result<u64, ()> {
+    Ok(audio_player.get_progress().await.as_millis() as u64)
 }
 
 #[derive(Serialize)]
@@ -184,6 +194,8 @@ pub fn run() {
             is_playing,
             set_volume,
             get_volume,
+            get_duration,
+            get_progress,
             search,
         ])
         .run(tauri::generate_context!())

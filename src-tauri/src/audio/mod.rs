@@ -1,5 +1,9 @@
 // TODO: Rewrite all of the audio backend
-use std::{error::Error, sync::mpsc};
+use std::{
+    error::Error,
+    sync::{Mutex, mpsc},
+    time::Duration,
+};
 
 use bytes::Bytes;
 use log::{error, info, warn};
@@ -23,6 +27,7 @@ type SinkFunc = Box<dyn FnOnce(&AudioSink) -> Result<(), AudioError> + Send + 's
 #[derive(Debug)]
 pub struct AudioPlayer {
     tx: mpsc::Sender<SinkFunc>,
+    duration: Mutex<Duration>,
 }
 
 impl Default for AudioPlayer {
@@ -31,7 +36,10 @@ impl Default for AudioPlayer {
 
         std::thread::spawn(move || audio_service(rx));
 
-        Self { tx }
+        Self {
+            tx,
+            duration: Mutex::new(Duration::ZERO),
+        }
     }
 }
 
@@ -77,6 +85,12 @@ impl AudioPlayer {
             .map_err(|e| AudioError::M3u8Error(e.to_string()))?;
 
         info!("Starting playback");
+
+        let duration: f32 = playlist.segments.iter().map(|i| i.duration).sum();
+        {
+            let mut dur = self.duration.lock().unwrap();
+            *dur = Duration::from_secs_f32(duration);
+        }
 
         let segments = playlist.segments.clone();
         let tx = self.tx.clone();
@@ -171,6 +185,22 @@ impl AudioPlayer {
             .unwrap();
 
         rx.await.unwrap()
+    }
+
+    pub async fn get_progress(&self) -> Duration {
+        let (tx, rx) = tokio::sync::oneshot::channel::<Duration>();
+        self.tx
+            .send(Box::new(move |sink| {
+                tx.send(sink.position()).unwrap();
+                Ok(())
+            }))
+            .unwrap();
+
+        rx.await.unwrap()
+    }
+
+    pub async fn get_duration(&self) -> Duration {
+        *self.duration.lock().unwrap()
     }
 }
 
