@@ -71,6 +71,7 @@
 <style>
     .container {
         height: 100%;
+        background: var(--theme-bg);
         display: flex;
         flex-direction: column;
     }
@@ -79,7 +80,13 @@
         flex: 1;
         overflow: auto;
         display: grid;
-        grid-template-columns: repeat(3, auto);
+
+        @media (min-width: 720px) {
+            grid-template-columns: repeat(2, auto);
+        }
+        @media (min-width: 1080px) {
+            grid-template-columns: repeat(3, auto);
+        }
     }
 
     .items {

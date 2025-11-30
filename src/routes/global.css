@@ -9,9 +9,14 @@ body {
     height: 100%;
     width: 100%;
 
+    /* for android safe area */
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+
     margin: 0;
 
-    background: var(--theme-bg);
+    background: var(--theme-bg-darker);
     color: var(--theme-fg);
 
     font-family: "Fira Code", system-ui;

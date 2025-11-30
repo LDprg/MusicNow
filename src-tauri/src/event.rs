@@ -23,12 +23,12 @@ impl GlobalEvents for AppHandle {
         info!("Event: duration: {}", duration);
         self.emit("duration", duration).unwrap();
 
-        let is_playing = audio_player.is_playing().await;
-        info!("Event: play_state: {}", is_playing);
-        self.emit("play_state", is_playing).unwrap();
-
         let progress = audio_player.get_progress().await.as_millis() as u64;
         info!("Event: progress: {}", progress);
         self.emit("progress", progress).unwrap();
+
+        let is_playing = audio_player.is_playing().await;
+        info!("Event: play_state: {}", is_playing);
+        self.emit("play_state", is_playing).unwrap();
     }
 }

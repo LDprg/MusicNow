@@ -14,7 +14,7 @@
     let play = $state(false);
     let volume = $state(0);
     let progress = new Tween(0, { easing: cubicOut });
-    let duration = $state(100);
+    let duration = $state(100000);
 
     listen("volume", (payload) => {
         volume = Math.round(payload.payload * 10) / 10;
@@ -61,25 +61,25 @@
     $inspect(play);
 </script>
 
-<div class="controll-container">
-    <div class="icon">
-        <i class="fa-solid fa-radiation"></i>
-    </div>
-    <div class="text">
-        {#if track == undefined}
-            Song: -\-
-            <br />
-            Artist: -\-
-        {:else}
-            Song: {track.title}
-            <br />
-            Artist: {track.artist}
-            <!-- <br /> -->
-            <!-- Mbid: {track.mbid} -->
-        {/if}
-    </div>
-    <div class="ctrl">
-        <div class="upper">
+<div class="container">
+    <div class="controll-container">
+        <div class="icon">
+            <i class="fa-solid fa-radiation"></i>
+        </div>
+        <div class="text">
+            {#if track == undefined}
+                Song: -\-
+                <br />
+                Artist: -\-
+            {:else}
+                Song: {track.title}
+                <br />
+                Artist: {track.artist}
+                <!-- <br /> -->
+                <!-- Mbid: {track.mbid} -->
+            {/if}
+        </div>
+        <div class="ctrl">
             <div class="center">
                 <button onclick={toggle_playback}>
                     {#if play}
@@ -102,66 +102,77 @@
                 />
             </div>
         </div>
-        <input
-            type="range"
-            min="0"
-            max={duration}
-            bind:value={progress.current}
-            disabled
-        />
     </div>
+    <input
+        type="range"
+        min="0"
+        max={duration}
+        bind:value={progress.current}
+        disabled
+    />
 </div>
 
 <style>
-    .controll-container {
+    .container {
         background: var(--theme-bg-darker);
         width: 100%;
         bottom: 0;
+        display: flex;
+        flex-direction: column;
+
+        box-sizing: border-box;
+        padding: 8px;
+    }
+
+    .controll-container {
+        width: 100%;
         display: flex;
     }
 
     .controll-container .icon {
         align-self: center;
         font-size: 50px;
-        margin: 8px;
+        margin-right: 8px;
     }
 
     .controll-container .text {
         align-self: center;
         margin: 8px;
-        width: 200px;
+        width: 150px;
+        @media (min-width: 720px) {
+            width: 200px;
+        }
+        @media (min-width: 1080px) {
+            width: 300px;
+        }
     }
 
     .controll-container .ctrl {
         align-self: center;
-        margin: 16px;
+        margin-left: 16px;
         flex: 1;
-    }
-
-    .controll-container .ctrl .upper {
-        text-align: center;
-        font-size: 18px;
-        margin-bottom: 8px;
         display: flex;
     }
 
-    .controll-container .ctrl .upper .center {
+    .controll-container .ctrl .center {
+        text-align: center;
         align-self: center;
         flex: 4;
     }
 
-    .controll-container .ctrl .upper .center button {
+    .controll-container .ctrl .center button {
         background: none;
         font-size: 20px;
     }
 
-    .controll-container .ctrl .upper .right {
+    .controll-container .ctrl .right {
         align-self: center;
         flex: 1;
         font-size: 14px;
     }
 
-    .controll-container .ctrl input[type="range"] {
+    input[type="range"] {
         width: 100%;
+        margin: 0;
     }
 </style>
