@@ -65,7 +65,7 @@
         {/each}
     </div>
 
-    <Controll bind:track />
+    <Controll {track} />
 </main>
 
 <style>

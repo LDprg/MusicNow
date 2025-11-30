@@ -82,12 +82,11 @@ impl AudioPlayer {
         let tx = self.tx.clone();
         tauri::async_runtime::spawn(async move {
             let err: Result<(), Box<dyn Error>> = async move {
-                let stream = AudioStreamer::default();
+                let (audio_tx, audio_rx) = audio_channel();
 
                 info!("Starting audio");
-                let stream_task = stream.clone();
                 tx.send(Box::new(move |sink| {
-                    sink.play(stream_task)?;
+                    sink.play(audio_rx)?;
                     Ok(())
                 }))
                 .unwrap();
@@ -99,15 +98,15 @@ impl AudioPlayer {
                         let resp = reqwest::get(&map.uri).await?;
                         let data: Bytes = resp.bytes().await?;
 
-                        stream.append(&data).await;
+                        audio_tx.append(&data).await;
                     }
 
                     let resp = reqwest::get(&segment.uri).await?;
                     let data: Bytes = resp.bytes().await?;
-                    stream.append(&data).await;
+                    audio_tx.append(&data).await;
                 }
 
-                stream.finish().await;
+                audio_tx.finish().await;
 
                 info!("Stream finished");
 
@@ -141,6 +140,18 @@ impl AudioPlayer {
             .unwrap();
     }
 
+    pub async fn is_playing(&self) -> bool {
+        let (tx, rx) = tokio::sync::oneshot::channel::<bool>();
+        self.tx
+            .send(Box::new(move |sink| {
+                tx.send(!sink.is_paused()).unwrap();
+                Ok(())
+            }))
+            .unwrap();
+
+        rx.await.unwrap()
+    }
+
     pub fn set_volume(&self, volume: f64) {
         self.tx
             .send(Box::new(move |sink| {
@@ -148,6 +159,18 @@ impl AudioPlayer {
                 Ok(())
             }))
             .unwrap();
+    }
+
+    pub async fn get_volume(&self) -> f64 {
+        let (tx, rx) = tokio::sync::oneshot::channel::<f64>();
+        self.tx
+            .send(Box::new(move |sink| {
+                tx.send(sink.get_volume() * 100.0).unwrap();
+                Ok(())
+            }))
+            .unwrap();
+
+        rx.await.unwrap()
     }
 }
 

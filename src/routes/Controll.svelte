@@ -1,41 +1,58 @@
 <script>
     import { invoke } from "@tauri-apps/api/core";
 
-    let { track = $bindable() } = $props();
+    let { track } = $props();
 
     let play = $state(true);
     let volume = $state(50);
 
     /**
+     * @type {Promise<void> | null}
+     * @brief Syncs date with backend. Ensures only one running sync at the time
+     * @todo This is very bad switch to two way implemenation
+     */
+    let syncFn = null;
+    async function syncData() {
+        if (syncFn) return syncFn;
+
+        syncFn = (async () => {
+            try {
+                let vol = await invoke("get_volume");
+                volume = Math.round(vol * 10) / 10; // Round to prevent unnessary reloading
+
+                play = await invoke("is_playing");
+            } finally {
+                syncFn = null;
+            }
+        })();
+
+        return syncFn;
+    }
+
+    syncData();
+
+    /**
      * @param {Event} event
-     * @todo TODO: This is slighty broken, since it is missing feedback
      */
     async function toggle_playback(event) {
         event.preventDefault();
 
-        if (play) {
-            console.info("Pausing song");
-
-            await invoke("pause");
-            play = false;
-        } else {
-            console.info("Resuming song");
-
-            await invoke("resume");
-            play = true;
-        }
+        await invoke("toggle_play");
+        await syncData();
     }
 
     /**
      * @param {Event} event
-     * @todo TODO: This is slighty broken, since it is missing feedback
      */
     async function set_volume(event) {
         event.preventDefault();
-        console.info("Setting volume");
 
         await invoke("set_volume", { volume: volume });
+        await syncData();
     }
+
+    $inspect(volume);
+    $inspect(play);
 </script>
 
 <div class="controll-container">
@@ -72,9 +89,10 @@
                     type="range"
                     id="volume"
                     min="0"
+                    step="0.1"
                     max="100"
                     bind:value={volume}
-                    onchange={set_volume}
+                    oninput={set_volume}
                 />
             </div>
         </div>

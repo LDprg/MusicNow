@@ -38,8 +38,30 @@ fn resume(audio_player: State<'_, AudioPlayer>) {
 }
 
 #[tauri::command]
+async fn toggle_play(audio_player: State<'_, AudioPlayer>) -> Result<(), ()> {
+    if audio_player.is_playing().await {
+        audio_player.pause();
+    } else {
+        audio_player.resume();
+    }
+    Ok(())
+}
+
+#[tauri::command]
+async fn is_playing(audio_player: State<'_, AudioPlayer>) -> Result<bool, ()> {
+    let val = audio_player.is_playing().await;
+    info!("Playing: {}", val);
+    Ok(val)
+}
+
+#[tauri::command]
 fn set_volume(audio_player: State<'_, AudioPlayer>, volume: f64) {
     audio_player.set_volume(volume);
+}
+
+#[tauri::command]
+async fn get_volume(audio_player: State<'_, AudioPlayer>) -> Result<f64, ()> {
+    Ok(audio_player.get_volume().await)
 }
 
 #[derive(Serialize)]
@@ -139,7 +161,14 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .setup(|app| tauri::async_runtime::block_on(setup(app.handle())))
         .invoke_handler(tauri::generate_handler![
-            play, pause, resume, set_volume, search
+            play,
+            pause,
+            resume,
+            toggle_play,
+            is_playing,
+            set_volume,
+            get_volume,
+            search,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

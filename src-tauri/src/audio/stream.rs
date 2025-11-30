@@ -4,53 +4,49 @@ use rodio::Decoder;
 use rodio::decoder::DecoderError;
 use std::{
     io::{self, Read, Seek, SeekFrom},
-    sync::{
-        Arc, Mutex,
-        mpsc::{self, channel},
-    },
+    sync::{Arc, Mutex, mpsc},
 };
 
-#[derive(Clone)]
-pub struct AudioStreamer {
-    inner: Arc<Mutex<AudioStreamerInner>>,
-    tx: Arc<Mutex<Option<mpsc::Sender<Vec<u8>>>>>,
+pub fn audio_channel() -> (AudioSender, AudioReceiver) {
+    let (tx, rx) = mpsc::channel();
+
+    (
+        AudioSender { tx },
+        AudioReceiver {
+            inner: Arc::new(Mutex::new(AudioRecieverInner {
+                buffer: Vec::new(),
+                pos: 0,
+                rx,
+            })),
+        },
+    )
 }
 
-struct AudioStreamerInner {
+pub struct AudioSender {
+    tx: mpsc::Sender<Vec<u8>>,
+}
+
+impl AudioSender {
+    pub async fn append(&self, new_data: &[u8]) {
+        self.tx.send(new_data.to_vec()).unwrap();
+    }
+
+    pub async fn finish(self) {
+        drop(self.tx)
+    }
+}
+
+pub struct AudioReceiver {
+    inner: Arc<Mutex<AudioRecieverInner>>,
+}
+
+struct AudioRecieverInner {
     buffer: Vec<u8>,
     pos: usize,
     rx: mpsc::Receiver<Vec<u8>>,
 }
 
-impl Default for AudioStreamer {
-    fn default() -> Self {
-        let (tx, rx) = channel();
-
-        AudioStreamer {
-            inner: Arc::new(Mutex::new(AudioStreamerInner {
-                buffer: Vec::new(),
-                pos: 0,
-                rx,
-            })),
-            tx: Arc::new(Mutex::new(Some(tx))),
-        }
-    }
-}
-
-impl AudioStreamer {
-    pub async fn append(&self, new_data: &[u8]) {
-        let tx = self.tx.lock().unwrap();
-        if let Some(tx) = tx.as_ref() {
-            tx.send(new_data.to_vec()).unwrap();
-        }
-    }
-
-    pub async fn finish(&self) {
-        self.tx.lock().unwrap().take();
-    }
-}
-
-impl Read for AudioStreamer {
+impl Read for AudioReceiver {
     fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
         let mut inner = self
             .inner
@@ -76,12 +72,13 @@ impl Read for AudioStreamer {
 }
 
 // TODO: Seeking only works within the Buffer
-impl Seek for AudioStreamer {
+impl Seek for AudioReceiver {
     fn seek(&mut self, pos: SeekFrom) -> std::io::Result<u64> {
         let mut inner = self
             .inner
             .lock()
             .map_err(|_| std::io::ErrorKind::Deadlock)?;
+
         let new_pos = match pos {
             SeekFrom::Start(off) => off as i64,
             SeekFrom::End(off) => inner.buffer.len() as i64 + off,
@@ -90,7 +87,7 @@ impl Seek for AudioStreamer {
 
         info!("Seek: {:?}, {} to {}", pos, inner.pos, new_pos);
 
-        if new_pos < 0 {
+        if new_pos < 0 || new_pos > inner.buffer.len() as i64 {
             return Err(io::Error::new(io::ErrorKind::InvalidInput, "Invalid seek"));
         }
 
@@ -99,10 +96,10 @@ impl Seek for AudioStreamer {
     }
 }
 
-impl TryFrom<AudioStreamer> for Decoder<AudioStreamer> {
+impl TryFrom<AudioReceiver> for Decoder<AudioReceiver> {
     type Error = DecoderError;
 
-    fn try_from(data: AudioStreamer) -> Result<Self, Self::Error> {
+    fn try_from(data: AudioReceiver) -> Result<Self, Self::Error> {
         Self::new(data)
     }
 }

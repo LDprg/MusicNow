@@ -1,13 +1,13 @@
 use thiserror::Error;
 
-use crate::{audio::stream::AudioStreamer, soundcloud::error::SoundcloudError};
+use crate::{audio::stream::AudioReceiver, soundcloud::error::SoundcloudError};
 
 #[derive(Error, Debug)]
 pub enum AudioError {
     #[error("Rodio output stream error")]
     OutputStreamError(#[from] rodio::stream::StreamError),
     #[error("Decoding AudioStream failed")]
-    DecodingFailed(#[from] <rodio::Decoder<AudioStreamer> as TryFrom<AudioStreamer>>::Error),
+    DecodingFailed(#[from] <rodio::Decoder<AudioReceiver> as TryFrom<AudioReceiver>>::Error),
     #[error("Track not found")]
     TrackNotFound,
     #[error("Media provider not found")]
