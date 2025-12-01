@@ -1,7 +1,6 @@
 <script>
     import { invoke } from "@tauri-apps/api/core";
     import { listen } from "@tauri-apps/api/event";
-    import { cubicOut } from "svelte/easing";
     import { Tween } from "svelte/motion";
 
     let { track } = $props();
@@ -9,12 +8,12 @@
     /**
      * @brief Time precision in ms
      */
-    const timePrecision = 100;
+    const timePrecision = 50;
 
     let play = $state(false);
     let volume = $state(0);
-    let progress = new Tween(0, { easing: cubicOut });
-    let duration = $state(100000);
+    let progress = new Tween(0, { delay: 0 });
+    let duration = $state(Infinity);
 
     listen("volume", (payload) => {
         volume = Math.round(payload.payload * 10) / 10;
@@ -22,17 +21,12 @@
     invoke("get_volume").then((vol) => (volume = Math.round(vol * 10) / 10));
 
     listen("play_state", (payload) => {
-        play = payload.payload;
+        let state = payload.payload;
+        play = state.is_playing;
+        duration = state.duration / timePrecision;
+        progress.set(state.progress / timePrecision);
     });
     invoke("is_playing").then((state) => (play = state));
-
-    listen("duration", (payload) => {
-        duration = payload.payload / timePrecision;
-    });
-
-    listen("progress", (payload) => {
-        progress.set(payload.payload / timePrecision);
-    });
 
     setInterval(() => {
         if (play) {

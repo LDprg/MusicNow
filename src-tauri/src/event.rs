@@ -1,7 +1,15 @@
 use log::info;
+use serde::Serialize;
 use tauri::{AppHandle, Emitter, Manager};
 
 use crate::audio::AudioPlayer;
+
+#[derive(Serialize, Clone, Debug)]
+pub struct PlayStatus {
+    pub is_playing: bool,
+    pub progress: u64,
+    pub duration: u64,
+}
 
 pub trait GlobalEvents {
     async fn event_volume(&self);
@@ -20,15 +28,16 @@ impl GlobalEvents for AppHandle {
         let audio_player = self.state::<AudioPlayer>();
 
         let duration = audio_player.get_duration().await.as_millis() as u64;
-        info!("Event: duration: {}", duration);
-        self.emit("duration", duration).unwrap();
-
         let progress = audio_player.get_progress().await.as_millis() as u64;
-        info!("Event: progress: {}", progress);
-        self.emit("progress", progress).unwrap();
-
         let is_playing = audio_player.is_playing().await;
-        info!("Event: play_state: {}", is_playing);
-        self.emit("play_state", is_playing).unwrap();
+
+        let state = PlayStatus {
+            duration,
+            progress,
+            is_playing,
+        };
+
+        info!("Event: play_state: {:#?}", state);
+        self.emit("play_state", state).unwrap();
     }
 }

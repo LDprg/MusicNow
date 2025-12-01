@@ -24,12 +24,35 @@ async fn play(
     track_id: u64,
 ) -> Result<(), ()> {
     info!("Playing rust");
+    let state = PlayStatus {
+        duration: u64::MAX,
+        progress: 0,
+        is_playing: false,
+    };
+
+    info!("Event: play_state: {:#?}", state);
+    app.emit("play_state", state).unwrap();
+
     let res = audio_player
         .play(soundcloud, track_id)
         .await
         .map_err(|err| error!("Error in AudioPlayer play: {:#?}", err));
-    app.event_play_status().await;
-    app.emit("play_state", true).unwrap();
+
+    if res.is_ok() {
+        let duration = audio_player.get_duration().await.as_millis() as u64;
+
+        let state = PlayStatus {
+            duration,
+            progress: 0,
+            is_playing: true,
+        };
+
+        info!("Event: play_state: {:#?}", state);
+        app.emit("play_state", state).unwrap();
+    } else {
+        app.event_play_status().await;
+    }
+
     res
 }
 
