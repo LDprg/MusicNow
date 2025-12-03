@@ -1,4 +1,5 @@
 <script>
+    import * as global from "$lib/global.svelte";
     import { invoke } from "@tauri-apps/api/core";
 
     let { searchResults = $bindable() } = $props();
@@ -24,6 +25,7 @@
 </script>
 
 <form class="search-container" onsubmit={search}>
+    <!-- svelte-ignore a11y_consider_explicit_label -->
     <input type="text" placeholder="Search" bind:value={query} />
     <!-- svelte-ignore a11y_consider_explicit_label -->
     <button type="submit"><i class="fa fa-search"></i></button>

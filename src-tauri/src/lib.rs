@@ -118,6 +118,7 @@ async fn get_progress(audio_player: State<'_, AudioPlayer>) -> Result<u64, ()> {
 struct SearchApi {
     title: String,
     artist: String,
+    image_url: Option<String>,
     mbid: Option<String>,
 }
 
@@ -165,6 +166,7 @@ async fn search(
                         Some(SearchApi {
                             title: track.title,
                             artist,
+                            image_url: track.artwork_url.map(|i| i.to_string()),
                             mbid: Some(track.id.to_string()),
                         })
                     } else {

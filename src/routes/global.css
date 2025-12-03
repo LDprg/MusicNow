@@ -19,6 +19,8 @@ body {
     background: var(--theme-bg-darker);
     color: var(--theme-fg);
 
+    accent-color: var(--theme-primary);
+
     font-family: "Fira Code", system-ui;
     font-size: 16px;
 }

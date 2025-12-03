@@ -5,7 +5,7 @@
     import { invoke } from "@tauri-apps/api/core";
 
     /**
-     * @typedef {{title: String, artist: String, mbid: (null | String)}} Track
+     * @typedef {{title: String, artist: String, image_url: (null | String) ,mbid: (null | String)}} Track
      */
 
     /**
@@ -47,7 +47,17 @@
                 }}
             >
                 <div class="icon">
-                    <i class="fa fa-radiation"></i>
+                    {#if item.image_url == undefined}
+                        <i class="fa fa-radiation"></i>
+                    {:else}
+                        <img
+                            src={item.image_url}
+                            alt={"Cover art of " +
+                                item.title +
+                                " from " +
+                                item.artist}
+                        />
+                    {/if}
                 </div>
                 <div class="text">
                     Titel: {item.title}
@@ -101,7 +111,10 @@
 
     .items .icon {
         align-self: center;
-        font-size: 50px;
+        text-align: center;
+        font-size: 80px;
+        width: 100px;
+        height: 100px;
     }
 
     .items .text {
