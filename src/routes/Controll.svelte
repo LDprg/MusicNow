@@ -27,6 +27,8 @@
         progress.set(state.progress / timePrecision);
     });
     invoke("is_playing").then((state) => (play = state));
+    invoke("get_progress").then((prog) => progress.set(prog / timePrecision));
+    invoke("get_duration").then((dur) => (duration = dur / timePrecision));
 
     setInterval(() => {
         if (play) {
@@ -58,19 +60,25 @@
 <div class="container">
     <div class="controll-container">
         <div class="icon">
-            <i class="fa-solid fa-radiation"></i>
+            {#if track == undefined || track.image_url == null}
+                <i class="fa fa-radiation"></i>
+            {:else}
+                <img
+                    src={track.image_url}
+                    alt={"Cover art of " +
+                        track.title +
+                        " from " +
+                        track.artist}
+                />
+            {/if}
         </div>
         <div class="text">
             {#if track == undefined}
-                Song: -\-
-                <br />
-                Artist: -\-
+                <div class="title">-\-</div>
+                <div>-\-</div>
             {:else}
-                Song: {track.title}
-                <br />
-                Artist: {track.artist}
-                <!-- <br /> -->
-                <!-- Mbid: {track.mbid} -->
+                <div class="title">{track.title}</div>
+                <div>{track.artist}</div>
             {/if}
         </div>
         <div class="ctrl">
@@ -116,6 +124,11 @@
 
         box-sizing: border-box;
         padding: 8px;
+
+        border: solid;
+        border-left: none;
+        border-width: 2px;
+        border-color: var(--theme-bg-dark);
     }
 
     .controll-container {
@@ -124,20 +137,50 @@
     }
 
     .controll-container .icon {
-        align-self: center;
-        font-size: 50px;
+        flex: 1;
         margin-right: 8px;
+
+        font-size: 40px;
+        text-align: center;
+
+        display: flex;
+        align-self: center;
+        align-items: center;
+
+        min-width: 50px;
+        max-width: 50px;
+        min-height: 50px;
+        max-height: 50px;
+
+        * {
+            flex: 1;
+            width: 100%;
+            height: 100%;
+        }
+
+        img {
+            object-fit: cover;
+        }
     }
 
     .controll-container .text {
         align-self: center;
         margin: 8px;
+
         width: 150px;
         @media (min-width: 720px) {
             width: 200px;
         }
         @media (min-width: 1080px) {
             width: 300px;
+        }
+
+        div {
+            margin-bottom: 4px;
+        }
+
+        .title {
+            font-weight: bold;
         }
     }
 

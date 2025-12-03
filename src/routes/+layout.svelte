@@ -1,4 +1,6 @@
 <script>
+    import Controll from "./Controll.svelte";
+
     import { goto } from "$app/navigation";
     import * as global from "$lib/global.svelte";
 
@@ -13,40 +15,87 @@
 </script>
 
 <nav class={navStyle}>
-    <!-- svelte-ignore a11y_consider_explicit_label -->
-    <button onclick={() => (global.ui.menu = !global.ui.menu)} class="ctrl">
-        <i class="fa fa-bars"></i>
-    </button>
-    <!-- svelte-ignore a11y_consider_explicit_label -->
-    <button onclick={() => goto("/")}>
-        <i class="fa fa-home"></i>
-        {#if global.ui.menu}
-            Home
-        {/if}
-    </button>
-    <!-- svelte-ignore a11y_consider_explicit_label -->
-    <button onclick={() => goto("/playlist")}>
-        <i class="fa fa-list"></i>
-        {#if global.ui.menu}
-            Playlist
-        {/if}
-    </button>
+    <div class="top">
+        <!-- svelte-ignore a11y_consider_explicit_label -->
+        <button onclick={() => (global.ui.menu = !global.ui.menu)} class="ctrl">
+            {#if global.ui.menu}
+                <i class="fa fa-arrow-left"></i>
+            {:else}
+                <i class="fa fa-arrow-right"></i>
+            {/if}
+        </button>
+        <!-- svelte-ignore a11y_consider_explicit_label -->
+        <button onclick={() => goto("/")}>
+            <i class="fa fa-home"></i>
+            {#if global.ui.menu}
+                Home
+            {/if}
+        </button>
+        <!-- svelte-ignore a11y_consider_explicit_label -->
+        <button onclick={() => goto("/playlist")}>
+            <i class="fa fa-list"></i>
+            {#if global.ui.menu}
+                Playlists
+            {/if}
+        </button>
+    </div>
+    <div class="bottom">
+        <!-- svelte-ignore a11y_consider_explicit_label -->
+        <button onclick={() => goto("/settings")}>
+            <i class="fa fa-gear"></i>
+            {#if global.ui.menu}
+                Settings
+            {/if}
+        </button>
+    </div>
 </nav>
 
-{@render children()}
+<main class="container">
+    {@render children()}
+
+    <Controll track={global.player.track} />
+</main>
 
 <style>
+    .container {
+        height: 100%;
+        background: var(--theme-bg);
+        display: flex;
+        flex-direction: column;
+    }
+
     nav {
         display: flex;
         flex-direction: column;
         float: left;
         height: 100%;
-        width: 2em;
+        width: 2.5em;
         font-size: 20px;
+
+        box-sizing: border-box;
+        border: solid;
+        border-width: 2px;
+        border-color: var(--theme-bg-dark);
+
+        .top {
+            flex-direction: column;
+            margin-top: 8px;
+        }
+
+        .bottom {
+            flex-direction: column-reverse;
+            margin-bottom: 8px;
+        }
+    }
+
+    nav div {
+        flex: 1;
+        width: 100%;
+        display: flex;
     }
 
     .big {
-        width: 6em;
+        width: 5em;
         text-align: left;
         font-size: 24px;
     }
@@ -54,12 +103,19 @@
     .ctrl {
         background: inherit;
         color: var(--theme-tertiary);
+
+        border-radius: 0;
+        border-bottom: solid;
+        border-width: 4px;
+        border-color: var(--theme-bg);
     }
 
     nav button {
         font-size: inherit;
         box-sizing: border-box;
-        padding-bottom: 8px;
-        padding-top: 8px;
+        border-radius: 8%;
+        padding-bottom: 12px;
+        padding-top: 12px;
+        margin: 4px;
     }
 </style>

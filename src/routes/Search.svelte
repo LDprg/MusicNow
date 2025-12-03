@@ -1,5 +1,4 @@
 <script>
-    import * as global from "$lib/global.svelte";
     import { invoke } from "@tauri-apps/api/core";
 
     let { searchResults = $bindable() } = $props();
@@ -38,11 +37,16 @@
         position: sticky;
         top: 0;
         width: 100%;
+
+        border: solid;
+        border-left: none;
+        border-width: 2px;
+        border-color: var(--theme-bg-dark);
     }
 
     .search-container input[type="text"] {
         padding: 6px;
-        margin: 8px 0px 8px 8px;
+        margin: 8px 0px 8px 6px;
         font-size: 18px;
         flex: 1;
     }
