@@ -1,6 +1,7 @@
 <script>
     import { invoke } from "@tauri-apps/api/core";
     import { listen } from "@tauri-apps/api/event";
+    import { onMount } from "svelte";
     import { Tween } from "svelte/motion";
 
     let { track } = $props();
@@ -15,26 +16,32 @@
     let progress = new Tween(0, { delay: 0 });
     let duration = $state(Infinity);
 
-    listen("volume", (payload) => {
-        volume = Math.round(payload.payload * 10) / 10;
-    });
-    invoke("get_volume").then((vol) => (volume = Math.round(vol * 10) / 10));
+    onMount(() => {
+        listen("volume", (payload) => {
+            volume = Math.round(payload.payload * 10) / 10;
+        });
+        invoke("get_volume").then(
+            (vol) => (volume = Math.round(vol * 10) / 10),
+        );
 
-    listen("play_state", (payload) => {
-        let state = payload.payload;
-        play = state.is_playing;
-        duration = state.duration / timePrecision;
-        progress.set(state.progress / timePrecision);
-    });
-    invoke("is_playing").then((state) => (play = state));
-    invoke("get_progress").then((prog) => progress.set(prog / timePrecision));
-    invoke("get_duration").then((dur) => (duration = dur / timePrecision));
+        listen("play_state", (payload) => {
+            let state = payload.payload;
+            play = state.is_playing;
+            duration = state.duration / timePrecision;
+            progress.set(state.progress / timePrecision);
+        });
+        invoke("is_playing").then((state) => (play = state));
+        invoke("get_progress").then((prog) =>
+            progress.set(prog / timePrecision),
+        );
+        invoke("get_duration").then((dur) => (duration = dur / timePrecision));
 
-    setInterval(() => {
-        if (play) {
-            progress.target += 1;
-        }
-    }, timePrecision);
+        setInterval(() => {
+            if (play) {
+                progress.target += 1;
+            }
+        }, timePrecision);
+    });
 
     /**
      * @param {Event} event
