@@ -38,5 +38,5 @@ pub async fn login_soundcloud() -> Result<(), ()> {
 
 #[tauri::command]
 pub async fn is_soundcloud() -> Result<bool, ()> {
-    Ok(true)
+    Ok(false)
 }
