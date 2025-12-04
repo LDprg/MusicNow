@@ -125,8 +125,7 @@
         box-sizing: border-box;
         padding: 8px;
 
-        border: solid;
-        border-left: none;
+        border-top: solid;
         border-width: 2px;
         border-color: var(--theme-bg-dark);
     }

@@ -80,7 +80,7 @@
         }
 
         box-sizing: border-box;
-        border: solid;
+        border-right: solid;
         border-width: 2px;
         border-color: var(--theme-bg-dark);
 

@@ -39,8 +39,7 @@
         width: 100%;
 
         box-sizing: border-box;
-        border: solid;
-        border-left: none;
+        border-bottom: solid;
         border-width: 2px;
         border-color: var(--theme-bg-dark);
     }
