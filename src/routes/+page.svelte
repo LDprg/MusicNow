@@ -98,6 +98,9 @@
                         {item.mbid}
                     {/if}
                 </div>
+                {#if item.available}
+                    <div class="err">NOT AVAILABLE</div>
+                {/if}
             </div>
         </div>
     {/each}
@@ -192,5 +195,9 @@
 
     .warn {
         color: var(--theme-warn);
+    }
+
+    .err {
+        color: var(--theme-err);
     }
 </style>

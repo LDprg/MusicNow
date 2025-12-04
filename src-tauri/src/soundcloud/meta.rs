@@ -29,6 +29,7 @@ pub struct SearchTrack {
     pub user_id: u64,
     pub publisher_metadata: Option<PublisherMetadata>,
     pub user: Option<SearchUser>,
+    pub monetization_model: String,
 }
 
 #[derive(Deserialize, Clone, Debug)]
@@ -71,6 +72,7 @@ pub struct TrackElement {
     pub media: TrackMedia,
     pub publisher_metadata: Option<PublisherMetadata>,
     pub user: Option<SearchUser>,
+    pub monetization_model: String,
 }
 
 #[derive(Deserialize, Clone, Debug)]

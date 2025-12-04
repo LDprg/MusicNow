@@ -112,6 +112,7 @@ pub struct SearchApi {
     artist: String,
     image_url: Option<String>,
     mbid: Option<String>,
+    available: bool,
 }
 
 #[tauri::command]
@@ -160,6 +161,7 @@ pub async fn search(
                             artist,
                             image_url: track.artwork_url.map(|i| i.to_string()),
                             mbid: Some(track.id.to_string()),
+                            available: track.monetization_model == "SUB_HIGH_TIER",
                         })
                     } else {
                         error!("Non Track in Soundcloud Track Search: {:#?}", track);

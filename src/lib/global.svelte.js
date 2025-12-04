@@ -1,5 +1,5 @@
 /**
- * @typedef {{title: String, artist: String, image_url: (null | String) ,mbid: (null | String)}} Track
+ * @typedef {{title: String, artist: String, image_url: (null | String) ,mbid: (null | String), available: boolean}} Track
  */
 
 export const ui = $state({
