@@ -4,6 +4,10 @@
     import * as global from "$lib/global.svelte";
 
     import { invoke } from "@tauri-apps/api/core";
+
+    // TODO: Replace by custom implementation at some point of time
+    import InfiniteLoading from "svelte-infinite-loading";
+
     /**
      * @param {Event} event
      */
@@ -21,13 +25,49 @@
             });
         }
     }
+
+    let page = $state(1); // page 0 is already loaded by search
+
+    /**
+     * @type {(() => void) | null}
+     */
+    let reset_fn = null;
+
+    $effect(() => {
+        if (global.player.tracks.length != 0) {
+            if (reset_fn) reset_fn();
+        }
+    });
+
+    // @ts-ignore
+    function infiniteHandler({ detail: { loaded, complete, reset } }) {
+        if (reset) reset_fn = reset;
+
+        if (global.player.query != null && global.player.tracks != null) {
+            invoke("search", {
+                query: global.player.query,
+                limit: 40,
+                offset: page,
+            }).then((data) => {
+                if (data.length != 0) {
+                    global.player.tracks = global.player.tracks.concat(data);
+                    page += 1;
+                    loaded();
+                } else {
+                    complete();
+                }
+            });
+        } else {
+            complete();
+        }
+    }
 </script>
 
 <Search bind:searchResults={global.player.tracks} />
 
 <div class="items-container">
-    {#each global.player.tracks as item}
-        <div class="items">
+    {#each global.player.tracks as item, index}
+        <div class="items" data-num={index + 1}>
             <button
                 class="icon"
                 onclick={(event) => {
@@ -61,6 +101,12 @@
             </div>
         </div>
     {/each}
+
+    <InfiniteLoading on:infinite={infiniteHandler}>
+        <div slot="noResults"></div>
+        <div slot="noMore"></div>
+        <div slot="spinner">Loading...</div>
+    </InfiniteLoading>
 </div>
 
 <style>

@@ -1,6 +1,6 @@
 use log::info;
 use serde::Serialize;
-use tauri::{AppHandle, Emitter, Manager};
+use tauri::{AppHandle, Emitter, Manager, Runtime};
 
 use crate::audio::AudioPlayer;
 
@@ -16,7 +16,7 @@ pub trait GlobalEvents {
     async fn event_play_status(&self);
 }
 
-impl GlobalEvents for AppHandle {
+impl<R: Runtime> GlobalEvents for AppHandle<R> {
     async fn event_volume(&self) {
         let audio_player = self.state::<AudioPlayer>();
         let volume = audio_player.get_volume().await;

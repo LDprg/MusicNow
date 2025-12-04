@@ -7,9 +7,10 @@ export const ui = $state({
 });
 
 /**
- * @type {{track: null | Track, tracks: Track[]}}
+ * @type {{query: null | String, track: null | Track, tracks: Track[]}}
  */
 export const player = $state({
+    query: null,
     track: null,
     tracks: [],
 });

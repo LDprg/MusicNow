@@ -111,7 +111,7 @@ impl Soundcloud {
     ) -> Result<meta::Search, SoundcloudError> {
         let offset = limit * offset;
 
-        info!("Soundcloud Search: {}", query);
+        info!("Soundcloud Search: {}, {}", query, offset);
         let resp = self
             .create_req("/search/tracks")?
             .query(&[

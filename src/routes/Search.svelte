@@ -1,4 +1,6 @@
 <script>
+    import * as global from "$lib/global.svelte";
+
     import { invoke } from "@tauri-apps/api/core";
 
     let { searchResults = $bindable() } = $props();
@@ -18,6 +20,8 @@
             limit: 40,
             offset: 0,
         });
+
+        global.player.query = query;
     }
 
     $inspect(searchResults);
