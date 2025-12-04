@@ -117,7 +117,7 @@ pub struct SearchApi {
 
 #[tauri::command]
 pub async fn search(
-    // lastfm: State<'_, LastFM>,
+    // lastfm: State<'_, LastFM>
     soundcloud: State<'_, Soundcloud>,
     query: String,
     limit: usize,

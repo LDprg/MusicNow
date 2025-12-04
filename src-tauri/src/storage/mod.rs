@@ -1,5 +1,6 @@
 use std::{fs::File, path::PathBuf};
 
+use log::info;
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 
 pub mod error;
@@ -22,8 +23,10 @@ impl DataStorage {
     pub fn new(app: &AppHandle) -> Result<Self, DataStorageError> {
         let lastfm_path = app
             .path()
-            .resolve("lastfm.bin", tauri::path::BaseDirectory::Data)?;
+            .resolve("musicnow/lastfm.bin", tauri::path::BaseDirectory::Data)?;
         let _: LastFMStorage = Self::get_storage_bincode(lastfm_path.clone())?;
+
+        info!("LastFM Storage: {:?}", lastfm_path);
 
         Ok(Self { lastfm_path })
     }

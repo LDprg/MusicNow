@@ -5,7 +5,7 @@ use std::time::Duration;
 use log::info;
 use md5::{Digest, Md5};
 use serde::{Deserialize, de::DeserializeOwned};
-use tauri::{AppHandle, Manager};
+use tauri::{AppHandle, Manager, Url, Webview, WebviewWindowBuilder};
 use tauri_plugin_http::reqwest;
 
 mod api;
@@ -166,9 +166,8 @@ impl LastFM {
         Ok(())
     }
 
-    pub async fn login(&mut self, app: &AppHandle) -> Result<(), LastFMError> {
+    pub async fn load_login(&mut self, app: &AppHandle) -> Result<bool, LastFMError> {
         let data_storage = app.state::<DataStorage>();
-
         let login_data = data_storage.read_lastfm()?;
 
         if !login_data.username.is_empty() && !login_data.session_key.is_empty() {
@@ -177,6 +176,16 @@ impl LastFM {
 
             self.login_data = Some(login_data);
 
+            return Ok(true);
+        }
+
+        Ok(false)
+    }
+
+    pub async fn login(&mut self, app: &AppHandle) -> Result<(), LastFMError> {
+        let data_storage = app.state::<DataStorage>();
+
+        if self.load_login(app).await? {
             return Ok(());
         }
 
@@ -190,14 +199,27 @@ impl LastFM {
             LASTFM_URL, LASTFM_API_KEY, token
         );
 
-        app.opener().open_url(url, None::<&str>)?;
+        let webview = WebviewWindowBuilder::new(
+            app,
+            "LastFM",
+            tauri::WebviewUrl::External(
+                Url::parse(&url).map_err(|err| LastFMError::TauriParseError(err.to_string()))?,
+            ),
+        )
+        .build()?;
+        webview.show()?;
+        webview.set_focus()?;
 
         while let Err(err) = self.fetch_session_key(&token).await {
             match err {
                 LastFMError::ApiError(_) => sleep(LASTFM_SESSION_KEY_INTERVAL).await,
-                _ => return Err(err),
+                _ => {
+                    webview.close()?;
+                    return Err(err);
+                }
             }
         }
+        webview.close()?;
 
         let login_data = self
             .login_data
@@ -209,6 +231,10 @@ impl LastFM {
         info!("Username: {}", login_data.username);
         info!("SessionKey: {}", login_data.session_key);
         Ok(())
+    }
+
+    pub fn is_login(&self) -> bool {
+        self.login_data.is_some()
     }
 
     #[allow(dead_code)]

@@ -5,12 +5,13 @@ mod lastfm;
 mod soundcloud;
 mod storage;
 
-use log::error;
+use log::{error, info};
 use std::error::Error;
+use tokio::sync::Mutex;
 
-use audio::*;
-// use lastfm::*;
 use api::*;
+use audio::*;
+use lastfm::*;
 use soundcloud::*;
 use storage::*;
 
@@ -23,12 +24,14 @@ async fn setup(app: &AppHandle) -> Result<(), Box<dyn Error>> {
     let audio_player = AudioPlayer::default();
     app.manage(audio_player);
 
-    // TODO: LastFM Login seems broken on android
-    // let mut lastfm = LastFM::default();
-    // if let Err(err) = lastfm.login(app).await {
-    //     error!("Error: {:#?}", err);
-    // }
-    // app.manage(lastfm);
+    let lastfm = Mutex::new(LastFM::default());
+    {
+        let mut lastfm = lastfm.lock().await;
+        if !lastfm.load_login(app).await? {
+            info!("No LastFM login data!");
+        }
+    }
+    app.manage(lastfm);
 
     let mut soundcloud = Soundcloud::default();
     if let Err(err) = soundcloud.login_anonymous().await {
@@ -50,6 +53,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .setup(|app| tauri::async_runtime::block_on(setup(app.handle())))
         .invoke_handler(tauri::generate_handler![
+            // track
             play,
             pause,
             resume,
@@ -60,6 +64,13 @@ pub fn run() {
             get_duration,
             get_progress,
             search,
+            // provider
+            login_listenbrainz,
+            is_listenbrainz,
+            login_lastfm,
+            is_lastfm,
+            login_soundcloud,
+            is_soundcloud,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

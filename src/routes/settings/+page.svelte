@@ -1,25 +1,55 @@
 <script>
+    import { invoke } from "@tauri-apps/api/core";
+    import { onMount } from "svelte";
+
     let global_volume = $state(50);
+    let soundcloud = $state(false);
+    let listenbrainz = $state(false);
+    let lastfm = $state(false);
+
+    function check() {
+        invoke("is_soundcloud").then((data) => (soundcloud = data));
+        invoke("is_listenbrainz").then((data) => (listenbrainz = data));
+        invoke("is_lastfm").then((data) => (lastfm = data));
+    }
+
+    onMount(check);
 </script>
 
 <div class="container">
     <h1 style="color: var(--theme-warn)">
-        Ui for reference only! Not working! WIP
+        Ui for reference only! Not fully working! WIP
     </h1>
 
     <div class="connections">
         <h2>Connections:</h2>
         <div class="grid">
-            <button>
+            <button onclick={() => invoke("login_soundcloud").then(check)}>
                 <i class="fa-brands fa-soundcloud"></i> Soundcloud
             </button>
-            <div class="status"><i class="fa-solid fa-check"></i></div>
+            {#if soundcloud}
+                <div class="status"><i class="fa-solid fa-check"></i></div>
+            {:else}
+                <div class="status"><i class="fa-solid fa-x"></i></div>
+            {/if}
 
-            <button> <i class="fa-solid fa-brain"></i> Listenbrainz </button>
-            <div class="status"><i class="fa-solid fa-x"></i></div>
+            <button onclick={() => invoke("login_listenbrainz").then(check)}>
+                <i class="fa-solid fa-brain"></i> Listenbrainz
+            </button>
+            {#if listenbrainz}
+                <div class="status"><i class="fa-solid fa-check"></i></div>
+            {:else}
+                <div class="status"><i class="fa-solid fa-x"></i></div>
+            {/if}
 
-            <button> <i class="fa-brands fa-lastfm"></i> LastFM </button>
-            <div class="status"><i class="fa-solid fa-x"></i></div>
+            <button onclick={() => invoke("login_lastfm").then(check)}>
+                <i class="fa-brands fa-lastfm"></i> LastFM
+            </button>
+            {#if lastfm}
+                <div class="status"><i class="fa-solid fa-check"></i></div>
+            {:else}
+                <div class="status"><i class="fa-solid fa-x"></i></div>
+            {/if}
         </div>
     </div>
 

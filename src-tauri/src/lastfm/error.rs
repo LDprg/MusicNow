@@ -14,6 +14,10 @@ pub enum LastFMError {
     OpenError(#[from] tauri_plugin_opener::Error),
     #[error("Data storage error")]
     DataStorageError(#[from] DataStorageError),
+    #[error("Tauri error")]
+    TauriError(#[from] tauri::Error),
+    #[error("Tauri parse error")]
+    TauriParseError(String),
     #[error("Reqwest failed")]
     ReqwestError(#[from] tauri_plugin_http::reqwest::Error),
 }

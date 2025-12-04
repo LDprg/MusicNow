@@ -1,5 +1,5 @@
-mod listenbrainz;
+mod provider;
 mod track;
 
-pub use listenbrainz::*;
+pub use provider::*;
 pub use track::*;
