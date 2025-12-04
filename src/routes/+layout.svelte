@@ -69,8 +69,15 @@
         flex-direction: column;
         float: left;
         height: 100%;
-        width: 2.5em;
-        font-size: 20px;
+        width: 2.75em;
+
+        font-size: 16px;
+        @media (min-width: 720px) {
+            font-size: 18px;
+        }
+        @media (min-width: 1080px) {
+            font-size: 20px;
+        }
 
         box-sizing: border-box;
         border: solid;
@@ -97,7 +104,14 @@
     .big {
         width: 5em;
         text-align: left;
-        font-size: 24px;
+
+        font-size: 20px;
+        @media (min-width: 720px) {
+            font-size: 22px;
+        }
+        @media (min-width: 1080px) {
+            font-size: 24px;
+        }
     }
 
     .ctrl {

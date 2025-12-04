@@ -61,7 +61,7 @@
     <div class="controll-container">
         <div class="icon">
             {#if track == undefined || track.image_url == null}
-                <i class="fa fa-radiation"></i>
+                <i class="fa fa-ban"></i>
             {:else}
                 <img
                     src={track.image_url}
@@ -167,6 +167,7 @@
         align-self: center;
         margin: 8px;
 
+        /* TODO: Change this since it is simply bad */
         width: 150px;
         @media (min-width: 720px) {
             width: 200px;

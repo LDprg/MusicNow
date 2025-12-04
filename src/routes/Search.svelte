@@ -38,6 +38,7 @@
         top: 0;
         width: 100%;
 
+        box-sizing: border-box;
         border: solid;
         border-left: none;
         border-width: 2px;
