@@ -617,8 +617,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "145052bdd345b87320e369255277e3fb5152762ad123a901ef5c262dd38fe8d2"
 dependencies = [
  "iana-time-zone",
+ "js-sys",
  "num-traits",
  "serde",
+ "wasm-bindgen",
  "windows-link 0.2.1",
 ]
 
@@ -2502,13 +2504,16 @@ dependencies = [
 name = "musicnow"
 version = "0.1.0"
 dependencies = [
+ "async-trait",
  "base16ct",
  "bincode",
  "bytes",
+ "chrono",
  "log",
  "m3u8-rs",
  "md-5",
  "regex",
+ "reqwest-middleware",
  "rodio",
  "scraper",
  "serde",
@@ -3767,6 +3772,21 @@ dependencies = [
  "wasm-streams",
  "web-sys",
  "webpki-roots",
+]
+
+[[package]]
+name = "reqwest-middleware"
+version = "0.4.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "57f17d28a6e6acfe1733fe24bcd30774d13bffa4b8a22535b4c8c98423088d4e"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "http",
+ "reqwest",
+ "serde",
+ "thiserror 1.0.69",
+ "tower-service",
 ]
 
 [[package]]

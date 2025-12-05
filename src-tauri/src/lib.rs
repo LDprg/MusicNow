@@ -2,6 +2,7 @@ mod api;
 mod audio;
 mod event;
 mod lastfm;
+mod musicbrainz;
 mod soundcloud;
 mod storage;
 
@@ -12,6 +13,7 @@ use tokio::sync::Mutex;
 use api::*;
 use audio::*;
 use lastfm::*;
+use musicbrainz::*;
 use soundcloud::*;
 use storage::*;
 
@@ -23,6 +25,9 @@ async fn setup(app: &AppHandle) -> Result<(), Box<dyn Error>> {
 
     let audio_player = AudioPlayer::default();
     app.manage(audio_player);
+
+    let musicbrainz = MusicBrainz::default();
+    app.manage(musicbrainz);
 
     let lastfm = Mutex::new(LastFM::default());
     {

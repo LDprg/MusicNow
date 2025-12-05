@@ -21,7 +21,7 @@
             console.info("Playing song");
 
             await invoke("play", {
-                trackId: Number.parseInt(global.player.track.mbid),
+                trackId: global.player.track.mbid,
             });
         }
     }
@@ -98,7 +98,7 @@
                         {item.mbid}
                     {/if}
                 </div>
-                {#if item.available}
+                {#if !item.available}
                     <div class="err">NOT AVAILABLE</div>
                 {/if}
             </div>

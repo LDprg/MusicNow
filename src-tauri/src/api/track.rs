@@ -1,10 +1,14 @@
 use log::{error, info};
 use serde::Serialize;
 use tauri::{AppHandle, Emitter, State};
+use tokio::sync::Mutex;
+use uuid::Uuid;
 
 use crate::{
+    LastFM,
     audio::AudioPlayer,
     event::{GlobalEvents, PlayStatus},
+    musicbrainz::MusicBrainz,
     soundcloud::{self, Soundcloud},
 };
 
@@ -13,7 +17,7 @@ pub async fn play(
     app: AppHandle,
     soundcloud: State<'_, Soundcloud>,
     audio_player: State<'_, AudioPlayer>,
-    track_id: u64,
+    track_id: &str,
 ) -> Result<(), ()> {
     info!("Playing rust");
     let state = PlayStatus {
@@ -26,7 +30,7 @@ pub async fn play(
     app.emit("play_state", state).unwrap();
 
     let res = audio_player
-        .play(soundcloud, track_id)
+        .play(soundcloud, track_id.parse().unwrap())
         .await
         .map_err(|err| error!("Error in AudioPlayer play: {:#?}", err));
 
@@ -117,12 +121,14 @@ pub struct SearchApi {
 
 #[tauri::command]
 pub async fn search(
-    // lastfm: State<'_, LastFM>
+    // lastfm: State<'_, Mutex<LastFM>>,
     soundcloud: State<'_, Soundcloud>,
+    // musicbrainz: State<'_, MusicBrainz>,
     query: String,
     limit: usize,
     offset: usize,
 ) -> Result<Vec<SearchApi>, ()> {
+    // let lastfm = lastfm.lock().await;
     // lastfm
     //     .search(query, limit, offset)
     //     .await
@@ -133,11 +139,14 @@ pub async fn search(
     //             .map(|track| SearchApi {
     //                 title: track.name,
     //                 artist: track.artist,
+    //                 image_url: None,
     //                 mbid: track.mbid.map(|mbid| mbid.to_string()),
+    //                 available: true,
     //             })
     //             .collect()
     //     })
     //     .map_err(|err| error!("Error in LastFM search: {:#?}", err))
+
     soundcloud
         .search(query, limit, offset)
         .await
@@ -161,7 +170,7 @@ pub async fn search(
                             artist,
                             image_url: track.artwork_url.map(|i| i.to_string()),
                             mbid: Some(track.id.to_string()),
-                            available: track.monetization_model == "SUB_HIGH_TIER",
+                            available: track.monetization_model != "SUB_HIGH_TIER",
                         })
                     } else {
                         error!("Non Track in Soundcloud Track Search: {:#?}", track);
@@ -171,4 +180,26 @@ pub async fn search(
                 .collect()
         })
         .map_err(|err| error!("Error in Soundcloud seach: {:#?}", err))
+
+    // musicbrainz
+    //     .search(query, limit, offset)
+    //     .await
+    //     .map(|item| {
+    //         item.releases
+    //             .into_iter()
+    //             .map(|track| SearchApi {
+    //                 title: track.title,
+    //                 artist: track
+    //                     .artist_credit
+    //                     .into_iter()
+    //                     .map(|item| item.name)
+    //                     .collect::<Vec<_>>()
+    //                     .join(" & "),
+    //                 image_url: None,
+    //                 mbid: Some(track.id.to_string()),
+    //                 available: true,
+    //             })
+    //             .collect()
+    //     })
+    //     .map_err(|err| error!("Error in MusicBrainz search: {:#?}", err))
 }

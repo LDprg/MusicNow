@@ -46,3 +46,6 @@ rodio = { git = "https://github.com/RustAudio/rodio", branch = "feat/comprehensi
     "symphonia-simd",
 ] }
 m3u8-rs = "6.0.0"
+reqwest-middleware = { version = "0.4.2", features = ["charset", "http2", "json", "rustls-tls"] }
+async-trait = "0.1.89"
+chrono = { version = "0.4.42", features = ["serde"] }
